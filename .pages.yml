@@ -1,0 +1,32 @@
+media:
+  input: assets/images
+  output: /assets/images
+
+content:
+  - name: projects
+    label: Projects
+    type: collection
+    path: _projects
+    filename: '{fields.title}'
+    view:
+      fields: [title, description, date]
+    fields:
+      - name: title
+        label: Title
+        type: string
+      - name: description
+        label: Description
+        type: text
+      - name: date
+        label: Date
+        type: date
+      - name: tech
+        label: Tech stack
+        type: string
+        list: true
+      - name: link
+        label: Link
+        type: string
+      - name: body
+        label: Body
+        type: rich-text
