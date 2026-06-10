@@ -30,3 +30,18 @@ content:
       - name: body
         label: Body
         type: rich-text
+  
+  - name: config
+    label: Site settings
+    type: file
+    path: _config.yml
+    fields:
+      - name: title
+        label: Site title
+        type: string
+      - name: description
+        label: Site description
+        type: string
+      - name: url
+        label: Site url
+        type: string
