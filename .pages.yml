@@ -7,7 +7,7 @@ content:
     label: Projects
     type: collection
     path: _projects
-    filename: '{fields.title}'
+    filename: '{fields.title}.md'
     view:
       fields: [title, description, date]
     fields:
@@ -27,6 +27,9 @@ content:
       - name: link
         label: Link
         type: string
+      - name: image
+        label: Screenshot
+        type: image
       - name: body
         label: Body
         type: rich-text
