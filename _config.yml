@@ -4,6 +4,8 @@ baseurl: ""
 url: "https://reios0.github.io"
 timezone: America/Toronto
 collections: 
+  skills: 
+    output: false
   projects: 
     output: true 
     permalink: /projects/:name/ 

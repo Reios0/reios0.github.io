@@ -3,6 +3,27 @@ media:
   output: /assets/images
 
 content:
+  - name: skills
+    label: Skills
+    type: collection
+    path: _skills
+    filename: '{fields.name}.md'
+    fields:
+      - name: name
+        label: Name
+        type: string
+      - name: icon
+        label: Icon
+        type: image
+      - name: category
+        label: Category
+        type: select
+        options:
+          - Frontend
+          - Backend
+          - DevOps
+          - Tools
+  
   - name: projects
     label: Projects
     type: collection
@@ -20,14 +41,17 @@ content:
       - name: date
         label: Date
         type: date
-      - name: tech
-        label: Tech stack
-        type: string
-        list: true
+      - name: skills
+        label: Skills
+        type: select
+        multiple: true
+        options:
+          path: _skills
+          value: name
       - name: link
         label: Link
         type: string
-      - name: image
+      - name: screenshot
         label: Screenshot
         type: image
       - name: body
