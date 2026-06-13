@@ -211,6 +211,9 @@ h3 {
 }
 
 .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   padding: 0.25rem 0.75rem;
   background: var(--muted-bg);
   color: var(--muted-fg);
@@ -222,8 +225,7 @@ h3 {
   width: 14px;
   height: 14px;
   object-fit: contain;
-  vertical-align: middle;
-  margin-right: 2px;
+  flex-shrink: 0;
 }
 
 .project-card__links {
