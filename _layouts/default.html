@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page.title }} | {{ site.title }}</title>
-    <meta name="description" content="{{ page.description | default: site.description }}">
+    <title>{{ page.title }} | {{ site.data.settings.title }}</title>
+    <meta name="description" content="{{ page.description | default: site.data.settings.description }}">
     <meta name="color-scheme" content="light">
     <link rel="stylesheet" href="/assets/css/main.css">
   </head>

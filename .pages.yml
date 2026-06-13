@@ -59,16 +59,13 @@ content:
   - name: config
     label: Site settings
     type: file
-    path: _config.yml
-    fields:
+    path: _data/settings.yml
+    fields: 
       - name: title
         label: Site title
         type: string
       - name: description
         label: Site description
-        type: string
-      - name: url
-        label: Site url
         type: string
       - name: profile_image
         label: Profile Image
