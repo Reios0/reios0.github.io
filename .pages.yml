@@ -44,6 +44,7 @@ content:
         multiple: true
         options:
           collection: skills
+          value: name
       - name: link
         label: Link
         type: string
