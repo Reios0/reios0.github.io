@@ -1,0 +1,149 @@
+---
+layout: default
+title: Home
+---
+
+<!-- About -->
+<section id="about" class="section" aria-labelledby="about-heading">
+  <div class="section__inner">
+    <div class="about__body">
+      <h1 id="about-heading" class="section__title">
+        Hi, I'm {{ site.title }}
+      </h1>
+      <p class="about__lead">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque at euismod mauris, eget porta orci. Aenean a tellus sagittis, tristique neque ac, bibendum ante. Proin sodales, lorem at pretium viverra, metus augue eleifend justo, a venenatis urna dui non tellus. Mauris placerat ipsum vel arcu laoreet, non lacinia nunc euismod.
+      </p>
+      <p class="about__text">
+        Suspendisse id mauris fringilla, porttitor magna a, varius magna. Maecenas nec lacus orci. Sed bibendum a est a placerat. Nam vehicula pellentesque sodales. Vestibulum venenatis purus vel nisl dignissim, id scelerisque turpis ornare. Phasellus at massa eu lacus pharetra volutpat. Sed ultricies sollicitudin dui, non laoreet diam pharetra ut. Sed pellentesque eu dolor et aliquet. 
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Projects -->
+<section id="projects" class="section section--muted" aria-labelledby="projects-heading">
+  <div class="section__inner">
+    <h2 id="projects-heading" class="section__title">
+      Featured Projects
+    </h2>
+    <div class="project-grid" role="list">
+      {% for project in site.projects %}
+        <article class="project-card" role="list-item">
+          {% if project.image %}
+            <img
+              src="{{ project.screenshot }}"
+              alt="{{ project.title }} project screenshot"
+              class="project-card__image"
+              loading="lazy"
+            >
+          {% else %}
+            <div class="project-card__image" role="img" aria-label="{{ project.title }} project - no screenshot available"></div>
+          {% endif %}
+          <div class="project-card__body">
+            <h3 class="project-card__title">
+              {{ project.title }}
+            </h3>
+            <p class="project-card__desc">
+              {{ project.description }}
+            </p>
+            {% if project.skills %}
+              <div class="project-card__tags" role="list" aria-label="Skills used in {{ project.title }}">
+                {% for skill_name in project.skills %}
+                  {% assign skill = site.skills | where: "name", skill_name | first %}
+                  <span class="tag" role="listitem">
+                    {% if skill.icon %}
+                      <img src="{{ skill.icon }}" alt="" aria-hidden="true" class="tag__icon">
+                    {% endif %}
+                    {{ skill_name }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+            <div class="project-card__link">
+              {% if project.link %}
+                <a
+                  href="{{ project.link }}"
+                  class="link--primary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="View {{ project.title }} in a new tab"
+                >
+                  View Project →
+                </a>
+              {% endif %}
+              <!-- This is the link to the project blog -->
+              <a
+                href="{{ project.url }}"
+                class="link--muted"
+                aria-label="Read article about {{ project.title }}"
+              >
+                Read Article
+              </a>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Skills -->
+<section id="skills" class="section" aria-labelledby="skills-heading">
+  <div class="section__inner">
+    <h2 id="skills-heading" class="section__title">
+      Skills &amp; Technologies
+    </h2>
+    <div class="skills-grid">
+      {% assign grouped = site.skills | group_by: "category" %}
+      {% for group in grouped %}
+        <div class="skills-group">
+          <h3 class="skills-group__label">
+            {{ group.name }}
+          </h3>
+          <ul class="skills-group__list" aria-label="{{ group.name }} skills">
+            {% for skill in group.items %}
+              <li class="skills-group__item">
+                {% if skill.icon %}
+                  <img
+                    src="{{ skill.icon }}"
+                    alt=""
+                    class="skills-group__icon"
+                    aria-hidden="true"
+                  >
+                {% else %}
+                  <span class="skills-group__dot" aria-hidden="true"></span>
+                {% endif %}
+                {{ skill.name }}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="section section--muted" aria-labelledby="contact-heading">
+  <div class="section__inner">
+    <div class="contact__inner">
+      <h2 id="contact-heading" class="section__title">
+        Get In Touch
+      </h2>
+      <p class="contact__desc">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque at euismod mauris, eget porta orci. Aenean a tellus sagittis, tristique neque ac, bibendum ante. Proin sodales, lorem at pretium viverra, metus augue eleifend justo, a venenatis urna dui non tellus. Mauris placerat ipsum vel arcu laoreet, non lacinia nunc euismod. 
+      </p>
+      <div class="contact__links" role="list">
+        <a href="mailto:place@holder.com" class="btn btn--primary" role="listitem">
+          Send Email
+        </a>
+        <a href="https://github.com/placeholder" target="_blank" rel="noopener noreferrer" class="btn btn--outline" role="listitem" aria-label="GitHub profile (open in a new tab)">
+          GitHub
+        </a>
+        <a href="https://linkedin.com/in/placeholder" target="_blank" rel="noopener noreferrer" class="btn btn--outline" role="listitem" aria-label="LinkedIn profile (opens in a new tab)">
+          LinkedIn
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
