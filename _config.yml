@@ -1,18 +1,4 @@
-title: Kaven Liu 
-description: Entry-level software engineer 
-baseurl: "" 
-url: "https://reios0.github.io"
-profile_image: /assets/image/profile.webp
-timezone: America/Toronto
-collections: 
-  skills: 
-    output: false
-  projects: 
-    output: true 
-    permalink: /projects/:name/ 
-defaults: 
-  - scope: 
-      path: "" 
-      type: projects 
-    values: 
-      layout: project
+title: Kaven Liu
+description: Entry-level software engineer
+url: https://reios0.github.io
+profile_image: /assets/images/vecteezy_man-empty-avatar-vector-photo-placeholder-for-social_36594092-1.jpg
