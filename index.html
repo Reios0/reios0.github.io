@@ -59,7 +59,14 @@ title: Home
                 {% endfor %}
               </div>
             {% endif %}
-            <div class="project-card__link">
+            <div class="project-card__links">
+              <a
+                href="{{ project.url }}"
+                class="link--muted"
+                aria-label="Read article about {{ project.title }}"
+              >
+                Read Article
+              </a>
               {% if project.link %}
                 <a
                   href="{{ project.link }}"
@@ -71,14 +78,6 @@ title: Home
                   View Project →
                 </a>
               {% endif %}
-              <!-- This is the link to the project blog -->
-              <a
-                href="{{ project.url }}"
-                class="link--muted"
-                aria-label="Read article about {{ project.title }}"
-              >
-                Read Article
-              </a>
             </div>
           </div>
         </article>
