@@ -40,11 +40,10 @@ content:
         type: date
       - name: skills
         label: Skills
-        type: select
+        type: reference
         multiple: true
         options:
-          path: _skills
-          value: name
+          collection: skills
       - name: link
         label: Link
         type: string
