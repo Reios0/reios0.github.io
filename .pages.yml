@@ -41,10 +41,11 @@ content:
       - name: skills
         label: Skills
         type: reference
-        multiple: true
         options:
           collection: skills
-          value: name
+          multiple: true
+          value: '{name}'
+          label: '{name}'
       - name: link
         label: Link
         type: string
