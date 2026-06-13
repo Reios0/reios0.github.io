@@ -154,6 +154,7 @@ h3 {
 }
 
 .about__image {
+  max-width: 400px;
   height: 100%;
   border-radius: 12px;
   object-fit: cover;
