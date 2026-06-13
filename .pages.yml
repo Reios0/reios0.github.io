@@ -15,7 +15,7 @@ content:
       - name: icon
         label: Icon
         type: image
-      - name: category
+      - name: skill_category
         label: Category
         type: select
         options:

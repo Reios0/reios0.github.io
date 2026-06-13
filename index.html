@@ -94,11 +94,15 @@ title: Home
       Skills &amp; Technologies
     </h2>
     <div class="skills-grid">
-      {% assign grouped = site.skills | group_by: "category" %}
+      {% assign grouped = site.skills | group_by: "skill_category" %}
       {% for group in grouped %}
         <div class="skills-group">
           <h3 class="skills-group__label">
-            {{ group.name }}
+            {% if group.name != "" %}
+              {{ group.name }}
+            {% else %}
+              Other
+            {% endif %}
           </h3>
           <ul class="skills-group__list" aria-label="{{ group.name }} skills">
             {% for skill in group.items %}
