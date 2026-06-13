@@ -44,8 +44,8 @@ content:
         options:
           collection: skills
           multiple: true
-          value: '{name}'
-          label: '{name}'
+          value: '{fields.name}'
+          label: '{fields.name}'
       - name: link
         label: Link
         type: string
