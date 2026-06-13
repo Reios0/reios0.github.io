@@ -2,6 +2,7 @@ title: Kaven Liu
 description: Entry-level software engineer 
 baseurl: "" 
 url: "https://reios0.github.io"
+profile_image: /assets/image/profile.webp
 timezone: America/Toronto
 collections: 
   skills: 
