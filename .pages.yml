@@ -19,10 +19,7 @@ content:
         label: Category
         type: select
         options:
-          - Frontend
-          - Backend
-          - DevOps
-          - Tools
+          values: [Frontend, Backend, DevOps, Tools]
   
   - name: projects
     label: Projects
