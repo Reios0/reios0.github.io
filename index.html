@@ -6,16 +6,25 @@ title: Home
 <!-- About -->
 <section id="about" class="section" aria-labelledby="about-heading">
   <div class="section__inner">
-    <div class="about__body">
-      <h1 id="about-heading" class="section__title">
-        Hi, I'm {{ site.title }}
-      </h1>
-      <p class="about__lead">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque at euismod mauris, eget porta orci. Aenean a tellus sagittis, tristique neque ac, bibendum ante. Proin sodales, lorem at pretium viverra, metus augue eleifend justo, a venenatis urna dui non tellus. Mauris placerat ipsum vel arcu laoreet, non lacinia nunc euismod.
-      </p>
-      <p class="about__text">
-        Suspendisse id mauris fringilla, porttitor magna a, varius magna. Maecenas nec lacus orci. Sed bibendum a est a placerat. Nam vehicula pellentesque sodales. Vestibulum venenatis purus vel nisl dignissim, id scelerisque turpis ornare. Phasellus at massa eu lacus pharetra volutpat. Sed ultricies sollicitudin dui, non laoreet diam pharetra ut. Sed pellentesque eu dolor et aliquet. 
-      </p>
+    <div class="about__layout">
+      <div class="about__image-wrap">
+        <img
+          src="{{ site.profile_image | default: '/assets/images/profile.webp' }}"
+          alt="Photo of {{ site.title }}"
+          class="about__image"
+        >
+      </div>
+      <div class="about__body">
+        <h1 id="about-heading" class="section__title">
+          Hi, I'm {{ site.title }}
+        </h1>
+        <p class="about__lead">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque at euismod mauris, eget porta orci. Aenean a tellus sagittis, tristique neque ac, bibendum ante. Proin sodales, lorem at pretium viverra, metus augue eleifend justo, a venenatis urna dui non tellus. Mauris placerat ipsum vel arcu laoreet, non lacinia nunc euismod.
+        </p>
+        <p class="about__text">
+          Suspendisse id mauris fringilla, porttitor magna a, varius magna. Maecenas nec lacus orci. Sed bibendum a est a placerat. Nam vehicula pellentesque sodales. Vestibulum venenatis purus vel nisl dignissim, id scelerisque turpis ornare. Phasellus at massa eu lacus pharetra volutpat. Sed ultricies sollicitudin dui, non laoreet diam pharetra ut. Sed pellentesque eu dolor et aliquet. 
+        </p>
+      </div>
     </div>
   </div>
 </section>

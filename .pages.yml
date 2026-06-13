@@ -70,3 +70,6 @@ content:
       - name: url
         label: Site url
         type: string
+      - name: profile_image
+        label: Profile Image
+        type: image
