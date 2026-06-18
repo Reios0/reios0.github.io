@@ -1,0 +1,27 @@
+<a href="main-content" class="skip-link">Skip to main content</a>
+
+<nav class="site-nav" aria-label="Main navigation">
+  <div class="site-nav__inner">
+    <a href="/#main-content" class="site-nav__brand" aria-label="{{ site.data.settings.title | default: site.title }} - home">
+      {{ site.data.settings.title | default: site.title }}
+    </a>
+
+    <!-- The hamburger menu for the mobile layout -->
+    <button
+      class="site-nav__toggle"
+      aria-controls="nav-menu"
+      aria-expanded="false"
+      aria-label="Open navigation menu"  
+    >
+      <img src="../assets/icons/hamburger.svg" alt="" aria-hidden="true" class="site-nav__icon-open">
+      <img src="../assets/icons/close.svg" alt="" aria-hidden="true" class="site-nav__icon-close">
+    </button>
+    
+    <ul class="site-nav__links" id="nav-menu" role="list">
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/#skills">Skills</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
