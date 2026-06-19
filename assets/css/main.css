@@ -698,3 +698,24 @@ h3 {
     padding: 2rem 1.25 rem;
   }
 }
+
+/* High contrast mode support */
+@media (forced-colors: active) {
+  .project-card, 
+  .tag, 
+  .btn--outline, 
+  .project-card__image[role="img"],
+  .site-nav__toggle,
+  .site-nav,
+  .prose pre {
+    border: 1px solid ButtonText;
+  }
+
+  .skills-group__dot {
+    forced-color-adjust: none;
+  }
+
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}
