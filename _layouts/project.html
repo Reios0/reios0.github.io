@@ -1,0 +1,78 @@
+---
+layout: default
+---
+
+{% comment %}
+Calculate the reading time based on the average reading time for adults (200 words/minute)
+{% endcomment %}
+{% assign words = content | strip_html | number_of_words %}
+{% assign calculated_read_time = words | divided_by: 200 | at_least: 1 %}
+
+<article class="article" aria-labelledby="article-title">
+  <div class="article__inner">
+    <a href="/" class="article__back" aria-label="Back to home">← Back to home</a>
+
+    <header class="article__header">
+      <div class="article__meta" aria-label="Article metadata">
+        <time datetime="{{ page.date | date: '%Y-%m-%d' }}">{{ page.date | date: "%B %-d, %Y" }}</time>
+        <span aria-hidden="true">•</span>
+        <span>{{ calculated_read_time }} min read</span>
+      </div>
+
+      <h1 id="article-title">{{ page.title }}</h1>
+
+      {% if page.description %}
+        <p class="article__excerpt">{{ page.description }}</p>
+      {% endif %}
+
+      {% if page.screenshot %}
+        <img
+          src="{{ page.screenshot }}"
+          alt="{{ page.title }} project screenshot"
+          class="article__screenshot"
+          loading="lazy"
+        >
+      {% endif %}
+
+      {% if page.skills %}
+        <div class="article__tags" role="list" aria-label="Technologies used">
+          {% for skill_name in page.skills %}
+            {% assign skill = site.skills | where: "name", skill_name | first %}
+            <span class="tag" role="listitem">
+              {% if skill.icon %}
+                <img
+                  src="{{ skill.icon }}"
+                  alt=""
+                  aria-hidden="true"
+                  class="tag__icon"
+                >
+              {% endif %}
+              {{ skill_name }}
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </header>
+
+    <div class="prose" role="region" aria-label="Article body">
+      {{ content }}
+    </div>
+
+    <footer class="article__footer">
+      {% if page.link %}
+        <a
+          href="{{ page.link }}"
+          class="link--primary"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View {{ page.title }} (opens in new tab)"
+        >
+          View Project →
+        </a>
+      {% endif %}
+      <a href="/" class="article__back" aria-label="Back to home">
+        ← Back to home
+      </a>
+    </footer>
+  </div>
+</article>
