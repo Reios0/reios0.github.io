@@ -112,7 +112,7 @@ title: Home
               Other
             {% endif %}
           </h3>
-          <ul class="skills-group__list" aria-label="{{ group.name }} skills">
+          <ul class="skills-group__list" role="list" aria-label="{{ group.name }} skills">
             {% for skill in group.items %}
               <li class="skills-group__item">
                 {% if skill.icon %}
