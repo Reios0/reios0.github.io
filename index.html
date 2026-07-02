@@ -102,34 +102,33 @@ title: Home
       Skills &amp; Technologies
     </h2>
     <div class="skills-grid">
-      {% assign grouped = site.skills | group_by: "skill_category" %}
-      {% for group in grouped %}
-        <div class="skills-group">
-          <h3 class="skills-group__label">
-            {% if group.name != "" %}
-              {{ group.name }}
-            {% else %}
-              Other
-            {% endif %}
-          </h3>
-          <ul class="skills-group__list" role="list" aria-label="{{ group.name }} skills">
-            {% for skill in group.items %}
-              <li class="skills-group__item">
-                {% if skill.icon %}
-                  <img
-                    src="{{ skill.icon }}"
-                    alt=""
-                    class="skills-group__icon"
-                    aria-hidden="true"
-                  >
-                {% else %}
-                  <span class="skills-group__dot" aria-hidden="true"></span>
-                {% endif %}
-                {{ skill.name }}
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
+      {% assign sorted_categories = site.data.skill_categories | sort: "order" %}
+      {% for category in sorted_categories %}
+        {% assign group_skills = site.skills | where: "skill_category", category.name %}
+        {% if group_skills.size > 0 %}
+          <div class="skills-group">
+            <h3 class="skills-group__label">
+              {{ category.name }}
+            </h3>
+            <ul class="skills-group__list" role="list" aria-label="{{ group.name }} skills">
+              {% for skill in group_skills %}
+                <li class="skills-group__item">
+                  {% if skill.icon %}
+                    <img
+                      src="{{ skill.icon }}"
+                      alt=""
+                      class="skills-group__icon"
+                      aria-hidden="true"
+                    >
+                  {% else %}
+                    <span class="skills-group__dot" aria-hidden="true"></span>
+                  {% endif %}
+                  {{ skill.name }}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
       {% endfor %}
     </div>
   </div>

@@ -3,6 +3,19 @@ media:
   output: /assets/images
 
 content:
+  - name: skill_categories
+  - label: Skill Categories
+  - type: collection
+  - path: _data/skill_categories
+  - filename: '{fields.name}.md'
+  - fields:
+    - name: name
+      label: Name
+      type: string
+    - name: order
+      label: Order
+      type: number
+  
   - name: skills
     label: Skills
     type: collection
@@ -17,9 +30,12 @@ content:
         type: image
       - name: skill_category
         label: Category
-        type: select
+        type: reference
         options:
-          values: [Languages, Frontend, Backend, DevOps, CMS & No-Code Platforms, Tools]
+          collection: skill_categories
+          multiple: false
+          value: '{fields.name}'
+          label: '{fields.name}'
   
   - name: projects
     label: Projects
