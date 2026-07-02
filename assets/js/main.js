@@ -64,3 +64,12 @@ if (toggle && menu) {
     }
   });
 }
+
+/* Email obfuscation */
+const emailLink = document.getElementById('contact-email');
+
+['mouseenter', 'focus'].forEach(event => {
+  emailLink.addEventListener(event, () => {
+    emailLink.href = 'mailto:kavenliu.123@gmail.com';
+  }, { once: true });
+});
