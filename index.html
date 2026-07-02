@@ -102,7 +102,7 @@ title: Home
       Skills &amp; Technologies
     </h2>
     <div class="skills-grid">
-      {% assign sorted_categories = site.data.skill_categories | sort: "order" %}
+      {% assign sorted_categories = site.skill_categories | sort: "order" %}
       {% for category in sorted_categories %}
         {% assign group_skills = site.skills | where: "skill_category", category.name %}
         {% if group_skills.size > 0 %}

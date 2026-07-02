@@ -3,7 +3,9 @@ description: Entry-level software engineer
 baseurl: "" 
 url: "https://reios0.github.io"
 timezone: America/Toronto
-collections: 
+collections:
+  skill_categories:
+    output: false
   skills: 
     output: false
   projects: 

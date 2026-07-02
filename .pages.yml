@@ -6,7 +6,7 @@ content:
   - name: skill_categories
     label: Skill Categories
     type: collection
-    path: _data/skill_categories
+    path: _skill_categories
     filename: '{fields.name}.md'
     fields:
     - name: name
