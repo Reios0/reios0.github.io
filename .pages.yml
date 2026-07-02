@@ -19,7 +19,7 @@ content:
         label: Category
         type: select
         options:
-          values: [Frontend, Backend, DevOps, Tools]
+          values: [Languages, Frontend, Backend, DevOps, CMS & No-Code Platforms, Tools]
   
   - name: projects
     label: Projects
