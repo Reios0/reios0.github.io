@@ -4,11 +4,11 @@ media:
 
 content:
   - name: skill_categories
-  - label: Skill Categories
-  - type: collection
-  - path: _data/skill_categories
-  - filename: '{fields.name}.md'
-  - fields:
+    label: Skill Categories
+    type: collection
+    path: _data/skill_categories
+    filename: '{fields.name}.md'
+    fields:
     - name: name
       label: Name
       type: string
