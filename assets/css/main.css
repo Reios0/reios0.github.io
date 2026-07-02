@@ -141,6 +141,18 @@ h3 {
   border-color: var(--fg);
 }
 
+.btn__icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .btn__icon {
+  filter: invert(1);
+}
+
 /* Navigation */
 .skip-link {
   position: absolute;
