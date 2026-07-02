@@ -1,3 +1,31 @@
+/* Dark mode toggle */
+const themeToggle = document.getElementById('theme-toggle');
+const root = document.documentElement;
+
+const applyTheme = (theme) => {
+  root.setAttribute('data-theme', theme);
+
+  if (themeToggle) {
+    themeToggle.setAttribute(
+      'aria-label',
+      theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+    );
+  }
+};
+
+// Use stored preference on load, falling back to OS preference otherwise
+const stored = localStorage.getItem('theme');
+const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+applyTheme(stored || (systemPrefersDark ? 'dark' : 'light'));
+
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    localStorage.setItem('theme', next);
+  });
+}
+
 /* Mobile navigation toggle */
 const toggle = document.querySelector('.site-nav__toggle');
 const menu = document.querySelector('.site-nav__links');
@@ -36,3 +64,12 @@ if (toggle && menu) {
     }
   });
 }
+
+/* Email obfuscation */
+const emailLink = document.getElementById('contact-email');
+
+['mouseenter', 'focus'].forEach(event => {
+  emailLink.addEventListener(event, () => {
+    emailLink.href = 'mailto:kavenliu.123@gmail.com';
+  }, { once: true });
+});

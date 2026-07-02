@@ -13,10 +13,22 @@
   --border:       rgba(0, 0, 0, 0.1);
   --primary:      #030213;
   --primary-fg:   #ffffff;
+  --nav-bg: rgba(255, 255, 255, 0.95);
   --radius:       0.625rem;
   --max-w:        72rem;
   --max-w-prose:  48rem;
   --touch-target: 2.75rem;
+}
+
+[data-theme="dark"] {
+  --bg: #0e0e11;
+  --fg: #f0f0f3;
+  --muted-bg: #1c1c21;
+  --muted-fg: #a1a1ab;
+  --border: rgba(255, 255, 255, 0.12);
+  --primary: #f0f0f3;
+  --primary-fg: #0e0e11;
+  --nav-bg: rgba(14, 14, 17, 0.95);
 }
 
 html {
@@ -129,6 +141,18 @@ h3 {
   border-color: var(--fg);
 }
 
+.btn__icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .btn__icon {
+  filter: invert(1);
+}
+
 /* Navigation */
 .skip-link {
   position: absolute;
@@ -155,7 +179,7 @@ h3 {
   z-index: 50;
   width: 100%;
   border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--nav-bg);
   backdrop-filter: blur(8px);
 }
 
@@ -180,6 +204,12 @@ h3 {
   opacity: 0.7;
 }
 
+.site-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .site-nav__links {
   display: flex;
   gap: 1.5rem;
@@ -195,6 +225,34 @@ h3 {
 }
 .site-nav__links a:hover {
   color: var(--fg);
+}
+
+/* Navigation - Theme Toggle */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius);
+}
+.theme-toggle:hover {
+  background: var(--muted-bg);
+}
+
+.theme-toggle__icon-dark {
+  display: none;
+}
+
+[data-theme="dark"] .theme-toggle__icon-light {
+  display: none;
+}
+[data-theme="dark"] .theme-toggle__icon-dark {
+  display: block;
 }
 
 /* Navigation - Hamburger Menu */
@@ -226,6 +284,11 @@ h3 {
   display: block;
 }
 
+[data-theme="dark"] .site-nav__icon-open, 
+[data-theme="dark"] .site-nav__icon-close {
+  filter: invert(1);
+}
+
 /* Footer */
 .site-footer {
   padding: 2rem 1.5rem;
@@ -250,7 +313,7 @@ h3 {
 }
 
 .section__title {
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
 }
 
 /* About */
@@ -398,12 +461,11 @@ h3 {
 /* Skills */
 .skills-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 2rem;
 }
 
 .skills-group__label {
-  font-size: 0.9375rem;
   color: var(--muted-fg);
   font-weight: 500;
   margin-bottom: 1rem;
