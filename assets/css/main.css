@@ -449,12 +449,11 @@ h3 {
 /* Skills */
 .skills-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 2rem;
 }
 
 .skills-group__label {
-  font-size: 0.9375rem;
   color: var(--muted-fg);
   font-weight: 500;
   margin-bottom: 1rem;
