@@ -6,22 +6,34 @@
       {{ site.data.settings.title | default: site.title }}
     </a>
 
-    <!-- The hamburger menu for the mobile layout -->
-    <button
-      class="site-nav__toggle"
-      aria-controls="nav-menu"
-      aria-expanded="false"
-      aria-label="Open navigation menu"  
-    >
-      <img src="{{ '/assets/icons/hamburger.svg' | relative_url }}" alt="" aria-hidden="true" class="site-nav__icon-open">
-      <img src="{{ '/assets/icons/close.svg' | relative_url }}" alt="" aria-hidden="true" class="site-nav__icon-close">
-    </button>
-    
-    <ul class="site-nav__links" id="nav-menu" role="list">
-      <li><a href="/#about">About</a></li>
-      <li><a href="/#projects">Projects</a></li>
-      <li><a href="/#skills">Skills</a></li>
-      <li><a href="/#contact">Contact</a></li>
-    </ul>
+    <div class="site-nav__actions">
+      <ul class="site-nav__links" id="nav-menu" role="list">
+        <li><a href="/#about">About</a></li>
+        <li><a href="/#projects">Projects</a></li>
+        <li><a href="/#skills">Skills</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+
+      <!-- Dark mode toggle -->
+      <button
+        class="theme-toggle"
+        id="theme-toggle"
+        aria-label="Switch to dark theme"
+      >
+        <img src="{{ '/assets/icons/moon.svg' | relative_url }}" alt="" aria-hidden="true" class="theme-toggle__icon-light">
+        <img src="{{ '/assets/icons/sun.svg' | relative_url }}" alt="" aria-hidden="true" class="theme-toggle__icon-dark">
+      </button>
+
+      <!-- The hamburger menu for the mobile layout -->
+      <button
+        class="site-nav__toggle"
+        aria-controls="nav-menu"
+        aria-expanded="false"
+        aria-label="Open navigation menu"  
+      >
+        <img src="{{ '/assets/icons/hamburger.svg' | relative_url }}" alt="" aria-hidden="true" class="site-nav__icon-open">
+        <img src="{{ '/assets/icons/close.svg' | relative_url }}" alt="" aria-hidden="true" class="site-nav__icon-close">
+      </button>
+    </div>
   </div>
 </nav>
