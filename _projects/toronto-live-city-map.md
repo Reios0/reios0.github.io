@@ -47,9 +47,9 @@ screenshot: /assets/images/torontomap-screenshot.png
 
 ## Overview
 
-Toronto publishes a lot of public data, but it's scattered: transit positions, emergency incidents, bike share status, and public amenities all live on separate city systems, updated on separate schedules. Toronto Live City Map brings all of it into a single view, so instead of checking several different sites to understand what's happening in the city right now, you check on.
+Toronto publishes a lot of public data, but it's scattered. Transit positions, emergency incidents, bike share status, and public amenities all live on separate city systems and updated on separate schedules. Toronto Live City Map brings all of it into a single view, so instead of checking several different sites to understand what's happening in the city right now, you just check one.
 
-The backend pulls from seven public endpoints across six different formats (JSON, XML, GTFS, GTFS-Realtime, GBFS, and plain text), each with its own schema and refresh rate. It normalizes all the data into a consistent internal structure, then serves it to the frontend that renders all of it.
+The backend pulls from seven public endpoints across six different formats (JSON, XML, GTFS, GTFS-Realtime, GBFS, and plain text), each with its own schema and refresh rate. It normalizes all the data into a consistent internal structure, then serves it to the frontend that renders it all.
 
 ## Key features
 
