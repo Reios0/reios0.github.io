@@ -23,6 +23,7 @@ link: https://torontomap.ca/
 screenshot: /assets/images/torontomap-screenshot.png
 ---
 # Table of contents
+
 1. [Overview](#overview)
 2. [Key features](#features)
 3. [Tech stack](#stack)
