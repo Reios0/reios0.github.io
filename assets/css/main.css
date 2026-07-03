@@ -325,12 +325,12 @@ h3 {
 
 .about__image-wrap {
   flex-shrink: 0;
-  width: 240px;
+  width: 280px;
 }
 
 .about__image {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 3 / 4;
   border-radius: 12px;
   object-fit: cover;
   object-position: center top;
@@ -685,7 +685,7 @@ h3 {
 /* Responsiveness */
 @media (max-width: 768px) {
   .about__image-wrap {
-    width: 180px;
+    width: 220px;
   }
 
   .project-grid {
