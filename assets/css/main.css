@@ -566,6 +566,14 @@ h3 {
   line-height: 1.7;
 }
 
+.article__screenshot {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
 .article__tags {
   display: flex;
   flex-wrap: wrap;
