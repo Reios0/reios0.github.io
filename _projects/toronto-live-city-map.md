@@ -152,4 +152,4 @@ All data is used under the Toronto and Ontario open government licenses, from se
 
 ## What's next
 
-Create a congestion layer using some sort of traffic flow data would make the map useful for trip planning. Public events (street closures, festivals, anything that temporarily changes the city) would be a great addition too.
+Creating a congestion layer using some sort of traffic flow data would make the map useful for trip planning. Public events (street closures, festivals, anything that temporarily changes the city) would be a great addition too.
