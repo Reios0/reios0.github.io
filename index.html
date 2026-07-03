@@ -38,7 +38,7 @@ title: Home
     <div class="project-grid" role="list">
       {% for project in site.projects %}
         <article class="project-card" role="list-item">
-          {% if project.image %}
+          {% if project.screenshot %}
             <img
               src="{{ project.screenshot }}"
               alt="{{ project.title }} project screenshot"
