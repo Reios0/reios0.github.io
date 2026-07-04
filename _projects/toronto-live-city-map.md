@@ -121,7 +121,15 @@ MarkerCluster introduced its own complication: when a marker moves between clust
 
 ### Fixing a memory spike in a 4-million-row file
 
-The TTC's GTFS stop time data is a text file with over 4 million rows. The original naive implementation loaded it into an array with one element per row, which meant millions of strings held in memory simultaneously before any of them were used, a worst-case space complexity of `O(mn)` for `m` columns and `n` rows. Switching to a generator-based approach fixed it: the backend processes one row at a time, extracts only the field it needs, and lets the rest be garbage collected immediately, bringing space complexity down to `O(m)` and closer to `O(1)` in practice since most columns are never used. The issue didn't surface in local development on a machine with 16GB of RAM; it only became visible once the app was deployed to a server with a tighter memory budget.
+The TTC's GTFS stop time data is a text file with over 4 million rows. The original naive implementation loaded it into an array with one element per row, which meant millions of strings held in memory simultaneously before any of them were used, a worst-case space complexity of `O(mn)` for `m` columns and `n` rows. The issue didn't surface in local development on a machine with 16GB of RAM; it only became visible once the app was deployed to a server with a tighter memory budget. 
+
+To make the numbers concrete: RSS (resident set size) is the total RAM the operating system has given the process at any moment. Both approaches start at around 94-98 MB. Downloading the zip file is the same for both, bringing RSS to roughly 341-343 MB as the raw bytes sit in a C++ buffer. 
+
+From there the two approaches diverge. The naive version decompresses all three GTFS files into strings at the same time before parsing any of them. That simultaneous decompression is the single biggest spike: RSS hits 1262 MB with all three file strings in memory at once. The optimized version never does this as it decompresses one file, parses it, frees the buffer, then moves to the next. After parsing stops, RSS actually drops to 268 MB because the buffer was already released. 
+
+The optimized version's worst moment comes later, during the stop routes step, which processes the 4-million-row stop_times file. That spike reaches 1301 MB which is slightly higher than the naive version's peak because the raw buffer for that one large file still has to be in memory while rows are being read. The generator helps with what gets kept after processing, not with the buffer that has to exist during it. 
+
+After both finish and GC (garbage collection, the runtime's automatic memory cleanup) runs, the difference becomes clear. The naive version settles at 754 MB, a 660 MB increase from baseline. The optimized version settles at 541 MB, a 443 MB increase (a saving of around 213 MB). Notably, heapUsed after GC is identical in both cases (34.62 MB), meaning the actual useful data retained is the same size either way. The saving comes entirely from the optimized version's sequential approach leaving less unreachable memory for GC to deal with.
 
 ### Making an interactive map accessible
 
@@ -136,8 +144,8 @@ Layer controls are custom-built rather than relying on Leaflet's defaults, which
 ## Other engineering decisions
 
 - **URL-based layer state**: active map layers are encoded in the URL rather than kept only in client state, so a configuration can be bookmarked or shared, and the frontend knows what to fetch before making any request.
-- **`useRef` for the Leaflet instance**: the map object and layer groups are stored in refs rather than component state, since they don't need to trigger React re-renders.
-- **`divIcon` markers**: lightweight HTML-based icons instead of image assets, since the map can have a large number of markers on screen at once.
+- `**useRef` for the Leaflet instance**: the map object and layer groups are stored in refs rather than component state, since they don't need to trigger React re-renders.
+- `**divIcon` markers**: lightweight HTML-based icons instead of image assets, since the map can have a large number of markers on screen at once.
 - **In-memory data storage**: processed datasets are kept in server memory for speed and simplicity rather than an external cache. The tradeoff is that a restart or crash means re-downloading and re-parsing everything, causing a temporary memory spike. The current setup also only works correctly with a single server instance. If a second instance were added for load balancing, each would maintain its own isolated copy of the data, so clients routed to different instances could see different state. Redis would solve this because it runs as a separate process that all instances share, so a write from one server is immediately available to the others. It is still in-memory and fast, just no longer tied to a single process. The backend is structured so that replacing the in-memory store with Redis later would be a contained change.
 - **Native `<dialog>` for data attribution**: the attribution panel uses the HTML `dialog` element for built-in focus management, keyboard support, and escape-to-close, while staying mounted in the DOM so search engines can still index it.
 - **Obfuscated contact email**: the contact address is constructed dynamically on user interaction rather than placed in the HTML as plain text, to reduce automated scraping while satisfying OpenStreetMap's tile usage attribution requirement.
