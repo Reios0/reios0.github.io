@@ -51,7 +51,7 @@ Toronto publishes a wealth of public data, but it's scattered across separate sy
 
 The application visualizes approximately 9,000 TTC stops, more than 1,000 Bike Share stations, over 300 public washrooms, several hundred live TTC vehicles, and live emergency incidents within a single interface.
 
-Behind that unified view is a significant data integration challenge. The backend ingests seven public data sources spanning six different formats (JSON, XML, GTFS, GTFS-Realtime, GBFS, and plain text), normalizing each into a shared internal model before serving it to the frontend. Supporting the transit layer also requires preprocessing GTFS datasets containing more than 126,000 trips and over 4 million stop-time records.
+Behind that unified view is a data integration challenge: the backend ingests seven public data sources spanning six different formats (JSON, XML, GTFS, GTFS-Realtime, GBFS, and plain text), normalizing each into a shared internal model before serving it to the frontend. Supporting the transit layer also requires preprocessing GTFS datasets containing more than 126,000 trips and over 4 million stop-time records.
 
 ## Key features
 
@@ -129,15 +129,27 @@ Marker clustering introduced an unexpected complication: when a marker moves bet
 
 ### Fixing a memory spike in a 4-million-row file
 
-The TTC's GTFS stop time data is a text file with over 4 million rows. The original naive implementation loaded it into an array with one element per row, which meant millions of strings held in memory simultaneously before any of them were used, a worst-case space complexity of `O(mn)` for `m` columns and `n` rows. The issue didn't surface in local development on a machine with 16GB of RAM; it only became visible once the app was deployed to a server with a tighter memory budget. 
+**The problem**
 
-To make the numbers concrete: RSS (resident set size) is the total RAM the operating system has given the process at any moment. Both approaches start at around 94-98 MB. Downloading the zip file is the same for both, bringing RSS to roughly 341-343 MB as the raw bytes sit in a C++ buffer. 
+The TTC's GTFS stop time data is a text file with over 4 million rows. Locally, on a machine with 16GB of RAM, this never showed up as an issue. Once the app moved to a server with a much tighter memory budget, it did.
 
-From there the two approaches diverge. The naive version decompresses all three GTFS files into strings at the same time before parsing any of them. That simultaneous decompression is the single biggest spike: RSS hits 1262 MB with all three file strings in memory at once. The optimized version never does this as it decompresses one file, parses it, frees the buffer, then moves to the next. After parsing stops, RSS actually drops to 268 MB because the buffer was already released. 
+**Naive implementation: loading every row into memory**
 
-The optimized version's worst moment comes later, during the stop routes step, which processes the 4-million-row stop_times file. That spike reaches 1301 MB which is slightly higher than the naive version's peak because the raw buffer for that one large file still has to be in memory while rows are being read. The generator helps with what gets kept after processing, not with the buffer that has to exist during it. 
+The original implementation decompressed all three GTFS files into strings at the same time, then loaded the stop-times file into an array with one element per row before parsing any of it. In practice, that meant millions of rows and three whole decompressed files sitting in memory at once, well before any of it was actually used.
 
-After both finish and GC (garbage collection, the runtime's automatic memory cleanup) runs, the difference becomes clear. The naive version settles at 754 MB, a 660 MB increase from baseline. The optimized version settles at 541 MB, a 443 MB increase (a saving of around 213 MB). Notably, heapUsed after GC is identical in both cases (34.62 MB), meaning the actual useful data retained is the same size either way. The saving comes entirely from the optimized version's sequential approach leaving less unreachable memory for GC to deal with.
+**Optimized implementation: sequential parsing**
+
+The fix was to stop treating decompression and parsing as separate, all-at-once phases. The optimized version decompresses one file, parses it, frees that buffer, and only then moves to the next. For the stop-times file specifically, rows are read and processed one at a time through a generator rather than collected into a single array first, so the parsed data never needs to exist as one giant in-memory structure.
+
+**Results**
+
+To make the comparison concrete: RSS (resident set size) is the total RAM the operating system has given the process at any moment. Both versions start at around 94-98 MB, and both reach roughly 341-343 MB once the zip file is downloaded and its raw bytes sit in a buffer, identical so far.
+
+From there they diverge. The naive version's biggest spike comes from decompressing all three files simultaneously: RSS hits 1262 MB with all three file strings in memory at once. The optimized version never does this. After it finishes parsing, RSS actually drops to 268 MB, because each buffer was already released as soon as it was no longer needed.
+
+The optimized version's own worst moment comes later, while it's working through the 4-million-row stop_times file. That spike reaches 1301 MB, marginally higher than the naive version's peak. The raw buffer for that one large file still has to be in memory while its rows are being read; the generator changes what gets kept after processing, not the fact that the file has to be loaded to be read at all.
+
+The real difference shows up after both finish and garbage collection runs. The naive version settles at 754 MB, a 660 MB increase from baseline. The optimized version settles at 541 MB, a 443 MB increase, a saving of about 213 MB. Tellingly, heapUsed after GC is identical in both cases (34.62 MB): the useful data retained is exactly the same size either way. The entire saving comes from the optimized version leaving less unreachable memory behind for garbage collection to clean up.
 
 ### Making an interactive map accessible
 
@@ -154,8 +166,8 @@ Layer controls are custom-built rather than relying on Leaflet's defaults, which
 - **URL-based layer state**: active map layers are encoded in the URL rather than kept only in client state, so a configuration can be bookmarked or shared, and the frontend knows what to fetch before making any request.
 - **In-memory data storage**: processed datasets are kept in server memory for speed and simplicity rather than an external cache. The tradeoff is that a restart or crash means re-downloading and re-parsing everything, causing a temporary memory spike. The current setup also only works correctly with a single server instance. If a second instance were added for load balancing, each would maintain its own isolated copy of the data, so clients routed to different instances could see different state. Redis would solve this because it runs as a separate process that all instances share, so a write from one server is immediately available to the others. It is still in-memory and fast, just no longer tied to a single process. The backend is structured so that replacing the in-memory store with Redis later would be a contained change.
 - **Native** `<dialog>` **for data attribution**: the attribution panel uses the HTML `dialog` element for built-in focus management, keyboard support, and escape-to-close, while staying mounted in the DOM so search engines can still index it.
-- `**useRef` for the Leaflet instance**: the map object and layer groups are stored in refs rather than component state, since they don't need to trigger React re-renders.
-- `**divIcon` markers**: lightweight HTML-based icons instead of image assets, since the map can have a large number of markers on screen at once.
+- **`useRef` for the Leaflet instance**: the map object and layer groups are stored in refs rather than component state, since they don't need to trigger React re-renders.
+- **`divIcon` markers**: lightweight HTML-based icons instead of image assets, since the map can have a large number of markers on screen at once.
 - **Obfuscated contact email**: the contact address is constructed dynamically on user interaction rather than placed in the HTML as plain text, to reduce automated scraping while satisfying OpenStreetMap's tile usage attribution requirement.
 
 ## Data sources
