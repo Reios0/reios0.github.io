@@ -177,13 +177,14 @@ Below are what's included with feature:
 
 The data used by this project are licensed under the Open Government License - Toronto and Open Government License - Ontario. More specifically, the following data sources are used:
 
-1. Surface Routes and Schedules for BusTime
-2. TTC BusTime Real-Time Next Vehicle Arrival (NVAS)
-3. TTC GTFS-Realtime (GTFS-RT)
-4. Bike Share Toronto
-5. Park Washroom Facilities
-6. Toronto Fire Active Incidents
-7. Toronto Police Service Calls for Service
+1. [Surface Routes and Schedules for BusTime](https://open.toronto.ca/dataset/surface-routes-and-schedules-for-bustime/)
+2. [TTC BusTime Real-Time Next Vehicle Arrival (NVAS)](https://open.toronto.ca/dataset/ttc-bustime-real-time-next-vehicle-arrival-nvas/)
+3. [TTC GTFS-Realtime (GTFS-RT)](https://open.toronto.ca/dataset/ttc-gtfs-realtime-gtfs-rt/)
+4. [Bike Share Toronto](https://open.toronto.ca/dataset/bike-share-toronto/)
+5. [Park Washroom Facilities](https://open.toronto.ca/dataset/washroom-facilities/)
+6. [Toronto Fire Active Incidents](https://www.toronto.ca/community-people/public-safety-alerts/alerts-notifications/toronto-fire-active-incidents/)
+7. [Toronto Police Service Calls for Service](https://experience.arcgis.com/experience/a22f5295933e48a5b0a4c90cd3c4cae1)
+
 
 The links above act as gateways to the endpoints used for the API calls, which can be found when digging deeper.
 
