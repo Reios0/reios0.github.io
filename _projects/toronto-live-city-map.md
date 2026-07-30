@@ -50,9 +50,9 @@ screenshot: /assets/images/torontomap-screenshot.png
     - [Popup Focus Management](#popup-focus-management)
     - [Reduced Motion Support](#reduced-motion-support)
     - [Visual Accessibility](#visual-accessibility)
-    - [Contact Information and Email Obfuscation](#contact-information-and-email-obfuscation)
-    - [Search Engine Optimization](#search-engine-optimization)
     - [Data Source Attribution](#data-source-attribution)
+  - [Contact Information and Email Obfuscation](#contact-information-and-email-obfuscation)
+  - [Search Engine Optimization](#search-engine-optimization)
   - [Backend Memory Optimization](#backend-memory-optimization)
     - [Naive Implementation Memory Snapshot](#naive-implementation-memory-snapshot)
     - [Optimized Implementation Memory Snapshot](#optimized-implementation-memory-snapshot)
@@ -407,27 +407,6 @@ Since map movement and marker animations can cause discomfort for some users, an
 
 Icons do not rely only on color or shadows to communicate information. Borders are added to icons to improve visibility for users with reduced vision.
 
-### Contact Information and Email Obfuscation
-
-The project includes a contact email as required by OpenStreetMap tile usage guidelines. However, placing a plain email address directly in HTML introduces a potential spam issue because automated bots can crawl webpages and collect email addresses.
-
-Instead of storing the email as plain text, the application constructs the email link dynamically using JavaScript. The email address is only generated when the user interacts with the contact element, such as hovering or focusing on it. This keeps the contact functionality available to users while reducing the likelihood of automated scraping.
-
-### Search Engine Optimization
-
-Although the application is primarily an interactive single-page application, SEO improvements were implemented to improve discoverability.
-
-The project includes:
-- Descriptive page metadata.
-- Keyword metadata.
-- Open Graph metadata for link previews.
-- Twitter Card metadata.
-- Structured data.
-
-A dynamic sitemap and robots.txt file are also generated.
-
-These allow search engines to better understand the application and determine which parts of the site should be indexed.
-
 ### Data Source Attribution
 
 Because the application displays public datasets from multiple sources, proper attribution is required. A dedicated data source attribution section was implemented using the native HTML `dialog` element.
@@ -441,6 +420,27 @@ The native dialog element was chosen because it provides:
 The attribution content remains mounted in the DOM, allowing the information to remain discoverable by search engines while still behaving like an interactive modal.
 
 The attribution section explains where the data originates and acknowledges the organizations providing the public information.
+
+## Contact Information and Email Obfuscation
+
+The project includes a contact email as required by OpenStreetMap tile usage guidelines. However, placing a plain email address directly in HTML introduces a potential spam issue because automated bots can crawl webpages and collect email addresses.
+
+Instead of storing the email as plain text, the application constructs the email link dynamically using JavaScript. The email address is only generated when the user interacts with the contact element, such as hovering or focusing on it. This keeps the contact functionality available to users while reducing the likelihood of automated scraping.
+
+## Search Engine Optimization
+
+Although the application is primarily an interactive single-page application, SEO improvements were implemented to improve discoverability.
+
+The project includes:
+- Descriptive page metadata.
+- Keyword metadata.
+- Open Graph metadata for link previews.
+- Twitter Card metadata.
+- Structured data.
+
+A dynamic sitemap and robots.txt file are also generated.
+
+These allow search engines to better understand the application and determine which parts of the site should be indexed.
 
 ## Backend Memory Optimization
 
