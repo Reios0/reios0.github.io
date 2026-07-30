@@ -185,7 +185,6 @@ The data used by this project are licensed under the Open Government License - T
 6. [Toronto Fire Active Incidents](https://www.toronto.ca/community-people/public-safety-alerts/alerts-notifications/toronto-fire-active-incidents/)
 7. [Toronto Police Service Calls for Service](https://experience.arcgis.com/experience/a22f5295933e48a5b0a4c90cd3c4cae1)
 
-
 The links above act as gateways to the endpoints used for the API calls, which can be found when digging deeper.
 
 ## Deployment Architecture
