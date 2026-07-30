@@ -22,166 +22,479 @@ skills:
 link: https://torontomap.ca/
 screenshot: /assets/images/torontomap-screenshot.png
 ---
-# Table of contents
+## Table of Contents
 
-1. [Overview](#overview)
-2. [Key features](#key-features)
-3. [Architecture](#architecture)
-4. [Tech stack](#tech-stack)
-  - [Frontend](#frontend)
-  - [Backend](#backend)
-  - [Communication](#communication)
-  - [Testing](#testing)
-  - [Code quality](#code-quality)
-  - [CI/CD](#cicd)
-  - [Hosting & SSL](#hosting--ssl)
-  - [Domain & DNS](#domain--dns)
-5. [Technical challenges](#technical-challenges)
-  - [Normalizing seven data sources into one](#normalizing-seven-data-sources-into-one)
-  - [Rendering thousands of markers without slowing down](#rendering-thousands-of-markers-without-slowing-down)
-  - [Fixing a memory spike in a 4-million-row file](#fixing-a-memory-spike-in-a-4-million-row-file)
-  - [Making an interactive map accessible](#making-an-interactive-map-accessible)
-6. [Other engineering decisions](#other-engineering-decisions)
-7. [Data sources](#data-sources)
-8. [What's next](#whats-next)
+  - [Overview](#overview)
+  - [Core features](#core-features)
+    - [Detailed Information of Core Features](#detailed-information-of-core-features)
+  - [Tech Stack and Tools](#tech-stack-and-tools)
+  - [Data Sources](#data-sources)
+  - [Deployment Architecture](#deployment-architecture)
+  - [Challenges and Solutions](#challenges-and-solutions)
+    - [Handling Multiple Real-Time Data Sources](#handling-multiple-real-time-data-sources)
+    - [Reducing Map Rendering Performance Issues](#reducing-map-rendering-performance-issues)
+    - [Real-Time Communication Design](#real-time-communication-design)
+  - [Technical Decisions](#technical-decisions)
+    - [React State Management with Leaflet](#react-state-management-with-leaflet)
+    - [Marker Icon Choice](#marker-icon-choice)
+    - [Data Storage Strategy](#data-storage-strategy)
+  - [Frontend/Leaflet Decisions](#frontendleaflet-decisions)
+    - [URL Parameter Based State Management](#url-parameter-based-state-management)
+    - [Leaflet Animation and Marker Movement](#leaflet-animation-and-marker-movement)
+    - [Layer Ordering and Map Rendering Priority](#layer-ordering-and-map-rendering-priority)
+    - [Debounced Map Events](#debounced-map-events)
+  - [Accessibility Challenges and Solutions](#accessibility-challenges-and-solutions)
+    - [Keyboard Navigation](#keyboard-navigation)
+    - [Skip Navigation for Map Controls](#skip-navigation-for-map-controls)
+    - [Screen Reader Support](#screen-reader-support)
+    - [Popup Focus Management](#popup-focus-management)
+    - [Reduced Motion Support](#reduced-motion-support)
+    - [Visual Accessibility](#visual-accessibility)
+    - [Contact Information and Email Obfuscation](#contact-information-and-email-obfuscation)
+    - [Search Engine Optimization](#search-engine-optimization)
+    - [Data Source Attribution](#data-source-attribution)
+  - [Backend Memory Optimization](#backend-memory-optimization)
+    - [Naive Implementation Memory Snapshot](#naive-implementation-memory-snapshot)
+    - [Optimized Implementation Memory Snapshot](#optimized-implementation-memory-snapshot)
+    - [A Few Smaller Cleanups](#a-few-smaller-cleanups)
+  - [Future Improvements](#future-improvements)
+    - [Traffic Information](#traffic-information)
+    - [Public Events](#public-events)
+  - [Conclusion](#conclusion)
 
 ## Overview
 
-Toronto publishes a wealth of public data, but it's scattered across separate systems. Toronto Live City Map brings together live transit positions, emergency incidents, Bike Share availability, and public amenities into a single interactive map, eliminating the need to check multiple websites.
+Toronto Live City Map is a full-stack geospatial web app that acts as a real-time dashboard for the city of Toronto: a single place to see public transit, emergency activity, and civic infrastructure, pulled from several city-owned datasets and put on one map.
 
-The application visualizes approximately 9,000 TTC stops, more than 1,000 Bike Share stations, over 300 public washrooms, several hundred live TTC vehicles, and live emergency incidents within a single interface.
+The idea started from a simple annoyance: if you want to know where the next streetcar is, where a nearby bike is available, and whether there's an active fire incident near your route, that's three different websites. This app puts all of it in one interface, updating live as the underlying data changes.
 
-Behind that unified view is a data integration challenge: the backend ingests seven public data sources spanning six different formats (JSON, XML, GTFS, GTFS-Realtime, GBFS, and plain text), normalizing each into a shared internal model before serving it to the frontend. Supporting the transit layer also requires preprocessing GTFS datasets containing more than 126,000 trips and over 4 million stop-time records.
+Building it meant integrating both static and real-time municipal data through asynchronous API requests, and dealing with the fact that every source formats things differently (JSON, GTFS, GBFS, plain text, XML). Making all of that feel like one coherent map, instead of five datasets awkwardly stitched together, ended up being most of the actual engineering work.
 
-## Key features
+Technically, the project touches full-stack development, API integration, geospatial visualization, and interface design, with a fair amount of attention on rendering performance and keeping things responsive while data updates underneath the user in real time.
 
-- **Live TTC vehicle tracking**: bus and streetcar positions update every 10 seconds; clicking a vehicle shows route, vehicle ID, bearing, speed, and occupancy. Train positions aren't publicly available, so only buses and streetcars are tracked.
-- **Police and fire activity**: active incidents refresh every 20 minutes for police and every 5 minutes for fire, with call type, cross streets, dispatch time, alarm level, and units sent.
-- **Bike Share Toronto stations**: live dock and bike availability every 10 seconds, static station details refresh daily.
-- **Public washroom locations**: status, hours, address, and accessibility details, refreshed daily.
-- **TTC stops and stations**: static stop data refreshed biweekly, with arrivals every 30 seconds and service alerts every minute.
+It's also meant to be genuinely useful day to day: a live view of transit, emergency services, bike share, and public amenities that residents, commuters, cyclists, and visitors can actually check before heading out.
 
-## Architecture
+## Core features
 
-The frontend is a React single-page app built with Vite. The backend is a persistent Node/Express process rather than a serverless deployment, because Server-Sent Events need a long-lived connection to push updates, and serverless functions are built to terminate after a request finishes. Railway hosts both, with automatic SSL and a straightforward deploy path: a push to GitHub triggers linting and tests through GitHub Actions, and Railway deploys and health-checks the new version once those pass.
+The core features for this project include:
 
-The backend serves data in two ways. Frequently changing information is normalized and pushed to connected clients over SSE as it updates. SSE was chosen over WebSockets because communication is entirely server-to-client, making it simpler to implement while still providing automatic reconnection and efficient one-way updates. Less volatile information is updated on a schedule, and fetched over REST on demand when a user clicks a marker for more detail.
+- **Live TTC vehicle tracking**: Display the (semi) real-time locations of buses and streetcars across the transit network (data for trains are unfortunately not available). The application aims to update vehicle location every 10 seconds. This was briefly dropped to every 5 seconds while chasing what looked like a bug causing delayed updates, but the upstream TTC data itself only refreshes somewhere between 20 and 40 seconds regardless of local polling frequency, so it was reverted back to 10.
+- **Police and fire service activity**: Visualize the locations of active emergency service presence to improve situational awareness. The application aims to update police activities every 20 minutes and fire service activities every 5 minutes.
+- **Bike Share Toronto stations**: Allow users to locate nearby cycling stations and monitor station availability. The application aims to update station information daily while updating the station status information every 10 seconds.
+- **Public washroom locations**: Make public amenities easy to find while travelling throughout the city. The application aims to update washroom statuses daily.
+- **TTC stops and stations**: Provide a complete view of transit infrastructure alongside live vehicle movement. The application aims to update static stops and station information biweekly, while updating alerts every minute and arrivals every 30 seconds.
 
-Live feeds are polled by scheduled background jobs, normalized once on the server, then broadcast to all connected clients over SSE. This avoids every browser independently polling each upstream data source while ensuring every client receives the same view of the data.
+### Detailed Information of Core Features
 
-## Tech stack
+In addition to the coordinate locations of each core feature, additional information can be obtained on request by clicking on their respective markers. Popups are displayed for each marker on the map to provide more comprehensive and detailed information for each feature.
 
-### Frontend
+Below are what's included with feature:
 
+**1. Live TTC vehicles**
+- Route
+- Vehicle ID
+- Bearing
+- Speed
+- Occupancy status (how packed it is)
+
+**2. Police activity**
+- Police division
+- Call type (the reason for police presence)
+- Cross streets
+- Occurrence time
+
+**3. Fire service activity**
+- Incident type
+- Prime and cross streets
+- Dispatch time
+- Alarm level
+- Dispatched units
+
+**4. Bike Share Toronto stations**
+- Station name
+- Station ID
+- Whether it's a charging station
+- Number of docks available
+- Number of bikes available
+- Type and number of each available bike
+
+**5. Public washroom locations**
+- Washroom name
+- Status
+- Hours (usually an external link)
+- Address
+- Location of washroom at address
+- Type
+- Accessibility considerations (if available)
+- Reason (if the status isn't open)
+- Additional comments from the building
+
+**6. TTC stops and stations**
+- Name
+- Code
+- Alerts (ID, description)
+- Arrivals (route, headsign, time)
+
+## Tech Stack and Tools
+
+**Frontend**
 - React (with CSS modules)
+- Leaflet (with MarkerCluster and LocateControl plugins)
 - JavaScript
 - TypeScript
-- Leaflet (with MarkerCluster and LocateControl plugins)
 
-### Backend
-
-- Node.js
+**Backend**
+- Node
 - Express
 - TypeScript
 
-### Communication
-
-- REST (static and on-demand details)
-- Server-sent events (live updates)
-
-### Testing
-
+**Testing**
 - Vitest
 
-### Code quality
+**Domain + DNS**
+- Porkbun
 
+**Email Communication**
+- Porkbun email
+  - Forwarded domain's custom email to personal email by following a guide by Gourav Goyal
+
+**Hosting (Frontend + Backend) + SSL**
+- Railway
+
+**Client-Server Communication**
+- REST (for static and detailed information)
+- Server-Sent Events (for transmitting real-time data)
+
+**Code Quality**
 - ESLint
 - Prettier
 
-### CI/CD
+**CI/CD**
+- GitHub Actions (Super Linter, Setup Node)
+- Railway auto-deploy
 
-- GitHub Actions (linting and tests)
-- Railway (automatic deploy)
+## Data Sources
 
-### Hosting & SSL
+The data used by this project are licensed under the Open Government License - Toronto and Open Government License - Ontario. More specifically, the following data sources are used:
 
-- Railway
+1. Surface Routes and Schedules for BusTime
+2. TTC BusTime Real-Time Next Vehicle Arrival (NVAS)
+3. TTC GTFS-Realtime (GTFS-RT)
+4. Bike Share Toronto
+5. Park Washroom Facilities
+6. Toronto Fire Active Incidents
+7. Toronto Police Service Calls for Service
 
-### Domain & DNS
+The links above act as gateways to the endpoints used for the API calls, which can be found when digging deeper.
 
-- Porkbun
+## Deployment Architecture
 
-## Technical challenges
+The application requires a persistent backend process because Server-Sent Events require long-lived connections. This makes serverless platforms less suitable because serverless functions are designed for short-lived requests and may terminate after execution.
 
-### Normalizing seven data sources into one
+The application is deployed Railway, and the deployment workflow is as followed:
 
-Each source has its own schema and its own idea of what a location looks like, so the backend converts everything into a shared internal structure. For example, one source may expose coordinates as `lat` and `lon`, another as `latitude` and `longitude`, while GTFS-Realtime represents them differently again. Regardless of the source, every location is normalized into the same internal model. A map component that renders a vehicle doesn't need to know whether its data came from a GTFS-RT feed or a JSON endpoint; it always receives the same fields in the same shape. Scheduled background tasks handle the refresh side of this: fast-changing data is pulled frequently, static data is refreshed less often, and the frontend doesn't need to understand each source's individual update schedule.
+1. Code is pushed to GitHub.
+2. GitHub Actions runs linting and tests.
+3. Railway deploys after successful checks.
+4. Health checks verify the new version.
 
-### Rendering thousands of markers without slowing down
+In general, this is the overall project architecture:
 
-Leaflet creates a DOM element per marker, which becomes a real performance problem once thousands of vehicles, incidents, and stations are on screen at once, especially during pan and zoom. Three changes addressed it:
+1. Frontend: React + Vite production build
+2. Backend: Node.js + Express
+3. Hosting: Railway
+4. Domain: Porkbun
+5. DNS Management: Porkbun DNS
+6. SSL Certificate: Railway automatic SSL
+7. CI/CD: GitHub Actions
 
-1. Marker clustering (via Leaflet MarkerCluster plugin) groups nearby points when zoomed out and splits them apart on zoom in.
-2. Viewport-based rendering keeps markers outside the visible area out of the DOM entirely, with pan/zoom recalculation debounced so continuous dragging doesn't trigger it on every frame.
-3. Marker reuse matches incoming data to existing markers by ID, updating in place instead of tearing down and rebuilding the whole set on every refresh.
+## Challenges and Solutions
 
-Marker clustering introduced an unexpected complication: when a marker moves between clusters, the plugin removes and recreates its DOM element, which resets any CSS transition applied to it. Smooth position interpolation through CSS wasn't reliable as a result, so marker movement is animated manually with `requestAnimationFrame`, interpolating between the previous and new coordinates on every frame regardless of what MarkerCluster does to the underlying DOM.
+### Handling Multiple Real-Time Data Sources
 
-### Fixing a memory spike in a 4-million-row file
+One of the main challenges of this project was combining multiple public datasets that were created independently and updated at different frequencies.
 
-**The problem**
+The application integrates datasets from sources including TTC, Toronto Police, Toronto Fire, and Bike Share Toronto. Each source uses a different format and update schedule, including JSON, XML, GTFS, GTFS-Realtime, and GBFS.
 
-The TTC's GTFS stop time data is a text file with over 4 million rows. Locally, on a machine with 16GB of RAM, this never showed up as an issue. Once the app moved to a server with a much tighter memory budget, it did.
+To manage this, the backend normalizes external data into consistent internal structures before sending it to the frontend. This allows the frontend map components to treat different types of information similarly despite differences in the original sources.
 
-**Naive implementation: loading every row into memory**
+The backend also uses scheduled background tasks to periodically retrieve and refresh external datasets. Frequently changing information is updated more often, while static information is refreshed less frequently.
 
-The original implementation decompressed all three GTFS files into strings at the same time, then loaded the stop-times file into an array with one element per row before parsing any of it. In practice, that meant millions of rows and three whole decompressed files sitting in memory at once, well before any of it was actually used.
+One bug here took some digging to track down. The polling for these background tasks originally used `setInterval`, which just fires on schedule no matter what: it doesn't check whether the last fetch actually finished. Since a network request can take longer than expected for all sorts of reasons, this occasionally meant two fetches for the same resource were in flight at once, and if the older one happened to resolve after the newer one, it would silently overwrite fresh data with stale data. Switching vehicle, bike station, and stop polling to `setTimeout`, which only schedules the next fetch after the current one finishes, closed that gap, at the small cost of a slightly less predictable interval between updates. Worth it. Fetches also got a timeout now, so a stalled upstream connection can't hang forever, and all the cron jobs got overlap protection too.
 
-**Optimized implementation: sequential parsing**
+Separately, `vehicleService` had a quieter bug: it started polling as a side effect of just being imported, which happened before the server's actual boot logic ran, so every startup fired off a redundant fetch. That's fixed now; polling only kicks off from the explicit boot call.
 
-The fix was to stop treating decompression and parsing as separate, all-at-once phases. The optimized version decompresses one file, parses it, frees that buffer, and only then moves to the next. For the stop-times file specifically, rows are read and processed one at a time through a generator rather than collected into a single array first, so the parsed data never needs to exist as one giant in-memory structure.
+### Reducing Map Rendering Performance Issues
 
-**Results**
+Displaying thousands of points of interest on an interactive map creates significant performance challenges.
 
-To make the comparison concrete: RSS (resident set size) is the total RAM the operating system has given the process at any moment. Both versions start at around 94-98 MB, and both reach roughly 341-343 MB once the zip file is downloaded and its raw bytes sit in a buffer, identical so far.
+A simple implementation would create a Leaflet marker for every piece of data. However, every marker creates a DOM element, and thousands of DOM elements can cause slow rendering, especially during map movement and zooming.
 
-From there they diverge. The naive version's biggest spike comes from decompressing all three files simultaneously: RSS hits 1262 MB with all three file strings in memory at once. The optimized version never does this. After it finishes parsing, RSS actually drops to 268 MB, because each buffer was already released as soon as it was no longer needed.
+Several optimizations were implemented and are detailed below.
 
-The optimized version's own worst moment comes later, while it's working through the 4-million-row stop_times file. That spike reaches 1301 MB, marginally higher than the naive version's peak. The raw buffer for that one large file still has to be in memory while its rows are being read; the generator changes what gets kept after processing, not the fact that the file has to be loaded to be read at all.
+**Marker Clustering**
 
-The real difference shows up after both finish and garbage collection runs. The naive version settles at 754 MB, a 660 MB increase from baseline. The optimized version settles at 541 MB, a 443 MB increase, a saving of about 213 MB. Tellingly, heapUsed after GC is identical in both cases (34.62 MB): the useful data retained is exactly the same size either way. The entire saving comes from the optimized version leaving less unreachable memory behind for garbage collection to clean up.
+The application uses a Leaflet plugin called MarkerCluster to group nearby markers together when zoomed out. This reduces visual clutter and improves performance by preventing thousands of markers from being displayed simultaneously. As the user zooms closer, clusters separate into individual markers.
 
-### Making an interactive map accessible
+**Viewport-Based Rendering**
 
-Interactive maps present accessibility challenges that lists and forms don't. Spatial relationships between markers can't be conveyed in a meaningful reading order, so traditional accessibility patterns don't translate directly. The application addresses those challenges in several ways.
+The application only renders markers that are currently visible within the map viewport. Markers outside of the user's current view do not need to exist in the DOM because they cannot be interacted with. Map movement updates are also debounced to prevent excessive recalculation during continuous dragging or zooming.
 
-Markers carry ARIA labels describing what they are, whether more detail is available, and what action is possible, so a screen reader user has context before interacting. Popups move focus in on open and return it to the originating marker on close, so keyboard users don't lose their place.
+The viewport boundary itself carries some padding, so markers near the edge of the screen get a buffer instead of being torn down and rebuilt every time they cross the viewport line. The amount of padding is tuned by zoom level: 20% once individual markers become visible (zoom level 16 and above), and 5% below that, since markers are already hidden inside cluster bubbles at those zoom levels and the padding's benefit barely applies while its cost grows quickly.
 
-The harder problem was structural: Leaflet appends its control container (zoom, locate, attribution) after the map pane in the DOM, and since that pane can contain thousands of interactive markers, a keyboard user has to tab through all of them before reaching any control. The fix was a skip-navigation button that moves focus directly to the control container. It's implemented as a button rather than an anchor link because an anchor would append a fragment identifier to the URL, and the URL is already used for layer state management, so changing it during accessibility navigation would interfere with the application's routing. Since the app requires JavaScript to function, using a JavaScript-powered button doesn't remove functionality for any users.
+**Marker Reuse**
 
-Layer controls are custom-built rather than relying on Leaflet's defaults, which aren't keyboard-friendly out of the box. Animations are reduced or disabled when the user has `prefers-reduced-motion` set.
+Instead of deleting and recreating every marker whenever new data arrives, markers are stored and matched using their unique IDs.
 
-## Other engineering decisions
+During updates:
+- Existing markers are updated with new information.
+- New data creates new markers.
+- Removed data removes outdated markers.
 
-- **URL-based layer state**: active map layers are encoded in the URL rather than kept only in client state, so a configuration can be bookmarked or shared, and the frontend knows what to fetch before making any request.
-- **In-memory data storage**: processed datasets are kept in server memory for speed and simplicity rather than an external cache. The tradeoff is that a restart or crash means re-downloading and re-parsing everything, causing a temporary memory spike. The current setup also only works correctly with a single server instance. If a second instance were added for load balancing, each would maintain its own isolated copy of the data, so clients routed to different instances could see different state. Redis would solve this because it runs as a separate process that all instances share, so a write from one server is immediately available to the others. It is still in-memory and fast, just no longer tied to a single process. The backend is structured so that replacing the in-memory store with Redis later would be a contained change.
-- **Native** `<dialog>` **for data attribution**: the attribution panel uses the HTML `dialog` element for built-in focus management, keyboard support, and escape-to-close, while staying mounted in the DOM so search engines can still index it.
-- **`useRef` for the Leaflet instance**: the map object and layer groups are stored in refs rather than component state, since they don't need to trigger React re-renders.
-- **`divIcon` markers**: lightweight HTML-based icons instead of image assets, since the map can have a large number of markers on screen at once.
-- **Obfuscated contact email**: the contact address is constructed dynamically on user interaction rather than placed in the HTML as plain text, to reduce automated scraping while satisfying OpenStreetMap's tile usage attribution requirement.
+This minimizes unnecessary DOM operations and allows the map to handle frequent real-time updates more efficiently.
 
-## Data sources
+Vehicle marker lookups specifically were also moved from a plain object to a `WeakMap`, so a vehicle's arrow element is looked up once per marker's lifetime instead of on every SSE update (every 10 seconds). When a vehicle no longer exists on the map, the `WeakMap` allows its data to be garbage collected automatically instead of requiring manual cleanup.
 
-All data is used under the Toronto and Ontario open government licenses, from seven public endpoints:
+**Consolidating Debounced Map Events**
 
-- [Surface Routes and Schedules for BusTime](https://open.toronto.ca/dataset/surface-routes-and-schedules-for-bustime/)
-- [TTC BusTime Real-Time Next Vehicle Arrival (NVAS)](https://open.toronto.ca/dataset/ttc-bustime-real-time-next-vehicle-arrival-nvas/)
-- [TTC GTFS-Realtime (GTFS-RT)](https://open.toronto.ca/dataset/ttc-gtfs-realtime-gtfs-rt/)
-- [Bike Share Toronto](https://open.toronto.ca/dataset/bike-share-toronto/)
-- [Park Washroom Facilities](https://open.toronto.ca/dataset/washroom-facilities/)
-- [Toronto Fire Active Incidents](https://www.toronto.ca/community-people/public-safety-alerts/alerts-notifications/toronto-fire-active-incidents/)
-- [Toronto Police Service Calls for Service](https://experience.arcgis.com/experience/a22f5295933e48a5b0a4c90cd3c4cae1)
+With six independent map layers (vehicles, stops, incidents, bike stations, washrooms, and alerts), each layer originally bound its own debounced handler to the map's `moveend` and `zoomend` events. This meant a single pan or zoom reset six separate debounce timers instead of one, and moments later, six separate callbacks each performed their own marker updates instead of one coordinated batch of DOM work the browser could paint in a single pass. The old implementation also re-registered these event listeners every time layer data changed, which could be as often as every 10 seconds, adding a significant amount of redundant event binding and unbinding.
 
-## What's next
+The fix was to move debounce ownership out of the individual layers and into the map component itself, so there is one listener and one debounce producing one synchronized batch of DOM work per pan or zoom, instead of six.
 
-A congestion layer built from live traffic flow data would make the map more useful for trip planning. Future work also includes incorporating temporary city events such as street closures and festivals so the map reflects not just permanent infrastructure, but the city's changing state throughout the day.
+That fix created a new problem, though: the small gaps the browser used to get between each layer's separate callback were gone, so all that marker work turned into one long uninterrupted block that froze the page. Leaflet MarkerCluster has an option for this, `chunkedLoading`, which splits the work into small time slices instead of doing it all at once, along with bulk `addLayers()`/`removeLayers()` calls that are a lot cheaper than adding markers one at a time. The tradeoff is that markers now trickle in over a couple hundred milliseconds after a big pan or zoom instead of all appearing instantly, a fair price for a page that doesn't lock up.
+
+Separately, a review of the rendering logic found that existing markers were having their position updated on every render, including markers on layers that never move after creation, such as washrooms and stops. This created an inefficiency that scaled with the total number of visible markers, since every `setLatLng` call touches the DOM. Adding a check to skip the position update when the coordinates haven't actually changed reduced pan and zoom lag significantly, and turned out to be the main cause of lag during panning and zooming, more so than any of the other rendering optimizations.
+
+### Real-Time Communication Design
+
+A challenge was determining how to deliver live updates without constantly polling the backend. Regular REST polling would require clients to repeatedly request data even when nothing changed. The application uses Server-Sent Events (SSE) for continuously changing information.
+
+SSE was chosen over WebSockets because the application mainly requires one-way communication:
+- The server pushes updates to connected clients.
+- Clients only request data when necessary.
+
+WebSockets would introduce unnecessary complexity because the client does not need to constantly send real-time information back.
+
+REST endpoints are still used for information that are updated less frequently and requires user interaction (popups), such as:
+- TTC stop arrival times.
+- TTC stop alerts.
+- Bike Station details.
+- Washroom details.
+
+One bug that took a while to notice: the SSE handler was calling `JSON.stringify()` inside the per-client callback, so the same data was getting re-serialized once for every connected client instead of once, total. That's fine with a handful of users but bad as that number grows. The fix was to cache the serialized string once per update and let every listener reuse it.
+
+## Technical Decisions
+
+### React State Management with Leaflet
+
+Leaflet maintains its own map state, which does not directly fit into React's rendering model.
+
+The Leaflet map instance is stored using `useRef` because the map object itself does not need to trigger React renders.
+
+Using `useRef` allows the application to:
+- Modify the map without unnecessary rerenders.
+- Maintain persistent references to layers.
+- Update markers efficiently.
+
+Layer groups are also stored using references because the groups themselves remain constant while their contents change.
+
+### Marker Icon Choice
+
+The application uses Leaflet `divIcon` instead of traditional image-based icons. Since the map can contain many markers, loading separate image assets for every marker would introduce unnecessary overhead. `divIcon` provides lightweight HTML-based markers that are sufficient because icons are mainly used as visual indicators.
+
+### Data Storage Strategy
+
+Since this application does not currently require large-scale horizontal scaling, processed datasets are stored in server memory.
+
+This provides:
+- Fast access.
+- Simple architecture.
+- Lower complexity.
+
+The backend is structured so that this can later be replaced with external caching solutions such as Redis if the application needs to scale.
+
+However, one tradeoff for this data storage strategy is that everything will be lost if the server goes down. This includes redeploy, restart, and crash-and-recover. When that happens, all data needs to be re-downloaded and re-parsed which will cause a spike in memory usage.
+
+## Frontend/Leaflet Decisions
+
+### URL Parameter Based State Management
+
+Since the application contains many different map layers, a challenge was deciding how users should control what information is displayed. A common approach would be to load all available data and let users enable or disable layers entirely on the client side. However, this created unnecessary work because users may only be interested in a subset of information.
+
+To solve this, the application uses URL parameters to represent the current map configuration. The selected layers are encoded in the URL, allowing users to:
+- Open the application with a specific set of enabled layers.
+- Bookmark a preferred map configuration.
+- Share a link that preserves the current map state.
+
+This also reduces the amount of unnecessary processing during the initial page load. The frontend can determine which layers the user wants to see before requesting data, preventing irrelevant information from being processed and rendered.
+
+### Leaflet Animation and Marker Movement
+
+A challenge with real-time vehicle tracking was smoothly moving markers when their positions changed. The initial approach was to rely on CSS transitions. However, Leaflet MarkerCluster manages marker DOM elements internally. When markers move between clusters, the DOM elements are frequently removed and recreated.
+
+Because the browser sees recreated elements are new elements, existing CSS transitions are interrupted and cannot smoothly interpolate between the previous and new positions. To solve this, marker movement animation was implemented manually using JavaScript. The animation system uses:
+- Starting coordinates.
+- Destination coordinates.
+- Animation start time.
+- Current time.
+- Animation duration.
+
+`requestAnimationFrame` is used to update marker positions on every browser frame. This allows vehicle markers to smoothly move across the map even while clustering is active.
+
+### Layer Ordering and Map Rendering Priority
+
+Because the map contains multiple types of information, controlling the visual ordering of layers was necessary. For example, moving vehicles should remain visible above lower-priority points of interest.
+
+Leaflet panes are used to control layer ordering. This provides a consistent z-index system where important real-time information can appear above static infrastructure layers. This approach is preferred over individual marker z-index adjustments because it controls entire groups of objects instead of managing each marker independently.
+
+### Debounced Map Events
+
+Map interactions such as panning and zooming can trigger many events in a short period. Running expensive calculations during every single event would negatively affect performance. Therefore, a custom debounce mechanism was implemented to reduce unnecessary work.
+
+The debounce function uses `useLayoutEffect` because map calculations depend on the current rendered state of the DOM before the browser paints the next frame. This ensures calculations use the latest map state while preventing excessive processing during rapid interactions.
+
+## Accessibility Challenges and Solutions
+
+Interactive maps are inherently difficult to make accessible because most information is communicated through visual-spatial representations and relationships. Unlike traditional web pages, users cannot simply navigate from element to element and understand the relationship between locations on a map. Several improvements were implemented to make the application more accessible.
+
+### Keyboard Navigation
+
+Leaflet's default controls are not always optimized for keyboard-only navigation. A custom layer control component was created instead of relying entirely on Leaflet's default layer toggle UI. This allows users to:
+- Navigate controls using the keyboard.
+- Toggle layers without using a mouse.
+
+### Skip Navigation for Map Controls
+
+Interactive maps create unique keyboard accessibility challenges because the map itself contains many interactive elements.
+
+Leaflet internally appends its control container (which contains elements such as zoom controls, the locate control, and attribution control) near the end of the map's root DOM element. In other words, the control container is the sibling below the map pane inside the DOM. Since markers within the map pane are interactable, the accessibility tree places those markers above what's inside the control container.
+
+For a mouse user, this ordering is not noticeable. However, for a keyboard or screen-reader user, this creates a navigation problem.
+
+Because the map may contain hundreds or thousands of interactive markers, users who only want to reach interface elements such as:
+- Data source attribution.
+- Contact information.
+- Other page controls.
+
+Would have to tab through every marker before reaching those controls.
+
+To solve this, a custom skip navigation mechanism was implemented. Similar to the traditional "Skip to main content" pattern used on accessible websites, the application provides a way for keyboard users to bypass the map content and jump directly to the Leaflet control area.
+
+Instead of using a traditional anchor element (`<a>`), a button-based approach was used. An anchor link would modify the URL by appending a fragment identifier (for example, `#leaflet-controls`). However, the URL should be reserved for controlling application state, such as selecting map layers. Changing the URL during accessibility navigation would interfere with the application's routing behavior.
+
+Since the application requires JavaScript to render the interactive map, there is no meaningful fallback scenario where JavaScript is disabled. Therefore, using a JavaScript-powered button does not remove functionality for users and allows the skip behavior to be implemented without modifying the URL.
+
+When activated, the button programmatically moves focus to the Leaflet controls, allowing users to quickly access important interface elements without navigating through all map markers.
+
+### Screen Reader Support
+
+Markers include ARIA attributes so they are not presented as unlabeled interactive elements. Descriptions provide information such as:
+- What type of marker it is.
+- Whether it contains additional information.
+- What action is available.
+
+This gives screen-reader users context before interacting.
+
+### Popup Focus Management
+
+When a user opens a popup using keyboard navigation, focus is moved appropriately. When the popup closes, focus returns to the marker that opened it. This prevents users from losing their place in the interface.
+
+### Reduced Motion Support
+
+Since map movement and marker animations can cause discomfort for some users, animations are disabled or reduced when the user has enabled the system-level `prefers-reduced-motion` setting.
+
+### Visual Accessibility
+
+Icons do not rely only on color or shadows to communicate information. Borders are added to icons to improve visibility for users with reduced vision.
+
+### Contact Information and Email Obfuscation
+
+The project includes a contact email as required by OpenStreetMap tile usage guidelines. However, placing a plain email address directly in HTML introduces a potential spam issue because automated bots can crawl webpages and collect email addresses.
+
+Instead of storing the email as plain text, the application constructs the email link dynamically using JavaScript. The email address is only generated when the user interacts with the contact element, such as hovering or focusing on it. This keeps the contact functionality available to users while reducing the likelihood of automated scraping.
+
+### Search Engine Optimization
+
+Although the application is primarily an interactive single-page application, SEO improvements were implemented to improve discoverability.
+
+The project includes:
+- Descriptive page metadata.
+- Keyword metadata.
+- Open Graph metadata for link previews.
+- Twitter Card metadata.
+- Structured data.
+
+A dynamic sitemap and robots.txt file are also generated.
+
+These allow search engines to better understand the application and determine which parts of the site should be indexed.
+
+### Data Source Attribution
+
+Because the application displays public datasets from multiple sources, proper attribution is required. A dedicated data source attribution section was implemented using the native HTML `dialog` element.
+
+The native dialog element was chosen because it provides:
+- Built-in focus management.
+- Keyboard support.
+- Escape-to-close behavior.
+- Better accessibility compared to custom modal implementations.
+
+The attribution content remains mounted in the DOM, allowing the information to remain discoverable by search engines while still behaving like an interactive modal.
+
+The attribution section explains where the data originates and acknowledges the organizations providing the public information.
+
+## Backend Memory Optimization
+
+During deployment testing, backend memory usage became an important consideration. The largest memory usage came from processing TTC GTFS data. The original implementation loaded text files by storing it into an array, where each element of the array corresponds to each row of the file. For a large text file that contains over 4 million rows, this implementation creates an array with millions of elements and stores it in memory.
+
+If the number of rows in a file is `n` and the number of columns is `m`, the naive implementation has a worst-case space complexity of `O(mn)`. If we count the array created to access column data for each row, then the worst-case space complexity is actually `O(mn + m)`.
+
+The solution was to process the files using generators. Instead of loading the entire dataset:
+- The backend processes one row at a time.
+- Only required fields are extracted.
+- Temporary objects can be garbage collected immediately.
+
+This reduces the worst-case space complexity from `O(mn + m)` to simply `O(m)`. Since most columns are not used, the average-case space complexity is actually `O(1)`.
+
+There are also additional improvements which included:
+- Removing duplicate parsing passes.
+- Avoiding storing unnecessary raw data.
+- Reducing simultaneous large objects in memory.
+
+### Naive Implementation Memory Snapshot
+
+Starts at 94 MB. Downloads the zip and RSS jumps to 343 MB, almost entirely in external (raw zip bytes sitting in a C++ Buffer). Then decompresses all three files into strings at once. This is the worst moment, RSS hits 1262 MB. The three file strings plus the parsing data are all in memory simultaneously. Then each parse step runs, the strings get freed, parsed JS objects move onto the heap (heapUsed climbs to 574 MB). After GC, it settles at 754 MB. Delta from baseline: +660 MB.
+
+### Optimized Implementation Memory Snapshot
+
+Starts at 98 MB. Downloads the zip and RSS jumps to 341 MB, same as naive. Then, critically, there's no "decompress all files to strings" step as it goes straight to parsing. It decompresses and parses one file at a time. After stops, rss actually drops to 268 MB because the buffer was freed. After trips, it climbs to 333 MB. Then parseStopRoutes (the 4-million row stop_times file) causes the biggest spike: 1301 MB, which is actually higher than the naive version's peak of 1262 MB. After GC, it settles at 541 MB. Delta from baseline: +443 MB.
+
+### A Few Smaller Cleanups
+
+A later pass over the backend turned up a couple of smaller things worth fixing alongside the memory work above. A couple of files were chaining `.filter()` into `.map()` just to throw away the result of `map`, which allocates a whole array nobody needed. Swapping that for a plain `for...of` loop gets the same result without the wasted allocation. And the app's internal event bus needed its listener limit raised, since it was tripping Node's default warning once enough background jobs were attached to it.
+
+## Future Improvements
+
+### Traffic Information
+
+A future addition would be integrating traffic flow data. This could provide:
+- Traffic congestion visualization.
+- Average speed information.
+- Traffic heatmaps.
+
+### Public Events
+
+The application could include public events happening throughout Toronto. This would allow users to understand temporary changes in the city environment, and where to engage in social gatherings.
+
+## Conclusion
+
+Toronto Live City Map demonstrates how fragmented public datasets can be combined into a single real-time geospatial application.
+
+The project involved challenges across:
+- Full-stack architecture.
+- Real-time communication.
+- External API integration.
+- Geospatial visualization.
+- Front-end performance optimization.
+- Cloud deployment.
+
+By combining transportation, emergency services, and civic infrastructure data, the application transforms open government data into an accessible tool for understanding and navigating the city.
