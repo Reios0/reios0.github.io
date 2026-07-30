@@ -88,7 +88,7 @@ The core features for this project include:
 
 In addition to the coordinate locations of each core feature, additional information can be obtained on request by clicking on their respective markers. Popups are displayed for each marker on the map to provide more comprehensive and detailed information for each feature.
 
-Below are what's included with feature:
+Below are what's included within each feature's popup:
 
 **1. Live TTC vehicles**
 - Route
