@@ -24,43 +24,43 @@ screenshot: /assets/images/torontomap-screenshot.png
 ---
 ## Table of Contents
 
-  - [Overview](#overview)
-  - [Core features](#core-features)
-    - [Detailed Information of Core Features](#detailed-information-of-core-features)
-  - [Tech Stack and Tools](#tech-stack-and-tools)
-  - [Data Sources](#data-sources)
-  - [Deployment Architecture](#deployment-architecture)
-  - [Challenges and Solutions](#challenges-and-solutions)
-    - [Handling Multiple Real-Time Data Sources](#handling-multiple-real-time-data-sources)
-    - [Reducing Map Rendering Performance Issues](#reducing-map-rendering-performance-issues)
-    - [Real-Time Communication Design](#real-time-communication-design)
-  - [Technical Decisions](#technical-decisions)
-    - [React State Management with Leaflet](#react-state-management-with-leaflet)
-    - [Marker Icon Choice](#marker-icon-choice)
-    - [Data Storage Strategy](#data-storage-strategy)
-  - [Frontend/Leaflet Decisions](#frontendleaflet-decisions)
-    - [URL Parameter Based State Management](#url-parameter-based-state-management)
-    - [Leaflet Animation and Marker Movement](#leaflet-animation-and-marker-movement)
-    - [Layer Ordering and Map Rendering Priority](#layer-ordering-and-map-rendering-priority)
-    - [Debounced Map Events](#debounced-map-events)
-  - [Accessibility Challenges and Solutions](#accessibility-challenges-and-solutions)
-    - [Keyboard Navigation](#keyboard-navigation)
-    - [Skip Navigation for Map Controls](#skip-navigation-for-map-controls)
-    - [Screen Reader Support](#screen-reader-support)
-    - [Popup Focus Management](#popup-focus-management)
-    - [Reduced Motion Support](#reduced-motion-support)
-    - [Visual Accessibility](#visual-accessibility)
-    - [Data Source Attribution](#data-source-attribution)
-  - [Contact Information and Email Obfuscation](#contact-information-and-email-obfuscation)
-  - [Search Engine Optimization](#search-engine-optimization)
-  - [Backend Memory Optimization](#backend-memory-optimization)
-    - [Naive Implementation Memory Snapshot](#naive-implementation-memory-snapshot)
-    - [Optimized Implementation Memory Snapshot](#optimized-implementation-memory-snapshot)
-    - [A Few Smaller Cleanups](#a-few-smaller-cleanups)
-  - [Future Improvements](#future-improvements)
-    - [Traffic Information](#traffic-information)
-    - [Public Events](#public-events)
-  - [Conclusion](#conclusion)
+- [Overview](#overview)
+- [Core features](#core-features)
+  - [Detailed Information of Core Features](#detailed-information-of-core-features)
+- [Tech Stack and Tools](#tech-stack-and-tools)
+- [Data Sources](#data-sources)
+- [Deployment Architecture](#deployment-architecture)
+- [Challenges and Solutions](#challenges-and-solutions)
+  - [Handling Multiple Real-Time Data Sources](#handling-multiple-real-time-data-sources)
+  - [Reducing Map Rendering Performance Issues](#reducing-map-rendering-performance-issues)
+  - [Real-Time Communication Design](#real-time-communication-design)
+- [Technical Decisions](#technical-decisions)
+  - [React State Management with Leaflet](#react-state-management-with-leaflet)
+  - [Marker Icon Choice](#marker-icon-choice)
+  - [Data Storage Strategy](#data-storage-strategy)
+- [Frontend/Leaflet Decisions](#frontendleaflet-decisions)
+  - [URL Parameter Based State Management](#url-parameter-based-state-management)
+  - [Leaflet Animation and Marker Movement](#leaflet-animation-and-marker-movement)
+  - [Layer Ordering and Map Rendering Priority](#layer-ordering-and-map-rendering-priority)
+  - [Debounced Map Events](#debounced-map-events)
+- [Accessibility Challenges and Solutions](#accessibility-challenges-and-solutions)
+  - [Keyboard Navigation](#keyboard-navigation)
+  - [Skip Navigation for Map Controls](#skip-navigation-for-map-controls)
+  - [Screen Reader Support](#screen-reader-support)
+  - [Popup Focus Management](#popup-focus-management)
+  - [Reduced Motion Support](#reduced-motion-support)
+  - [Visual Accessibility](#visual-accessibility)
+  - [Data Source Attribution](#data-source-attribution)
+- [Contact Information and Email Obfuscation](#contact-information-and-email-obfuscation)
+- [Search Engine Optimization](#search-engine-optimization)
+- [Backend Memory Optimization](#backend-memory-optimization)
+  - [Naive Implementation Memory Snapshot](#naive-implementation-memory-snapshot)
+  - [Optimized Implementation Memory Snapshot](#optimized-implementation-memory-snapshot)
+  - [A Few Smaller Cleanups](#a-few-smaller-cleanups)
+- [Future Improvements](#future-improvements)
+  - [Traffic Information](#traffic-information)
+  - [Public Events](#public-events)
+- [Conclusion](#conclusion)
 
 ## Overview
 
@@ -91,6 +91,7 @@ In addition to the coordinate locations of each core feature, additional informa
 Below are what's included within each feature's popup:
 
 **1. Live TTC vehicles**
+
 - Route
 - Vehicle ID
 - Bearing
@@ -98,12 +99,14 @@ Below are what's included within each feature's popup:
 - Occupancy status (how packed it is)
 
 **2. Police activity**
+
 - Police division
 - Call type (the reason for police presence)
 - Cross streets
 - Occurrence time
 
 **3. Fire service activity**
+
 - Incident type
 - Prime and cross streets
 - Dispatch time
@@ -111,6 +114,7 @@ Below are what's included within each feature's popup:
 - Dispatched units
 
 **4. Bike Share Toronto stations**
+
 - Station name
 - Station ID
 - Whether it's a charging station
@@ -119,6 +123,7 @@ Below are what's included within each feature's popup:
 - Type and number of each available bike
 
 **5. Public washroom locations**
+
 - Washroom name
 - Status
 - Hours (usually an external link)
@@ -130,6 +135,7 @@ Below are what's included within each feature's popup:
 - Additional comments from the building
 
 **6. TTC stops and stations**
+
 - Name
 - Code
 - Alerts (ID, description)
@@ -138,38 +144,47 @@ Below are what's included within each feature's popup:
 ## Tech Stack and Tools
 
 **Frontend**
+
 - React (with CSS modules)
 - Leaflet (with MarkerCluster and LocateControl plugins)
 - JavaScript
 - TypeScript
 
 **Backend**
+
 - Node
 - Express
 - TypeScript
 
 **Testing**
+
 - Vitest
 
 **Domain + DNS**
+
 - Porkbun
 
 **Email Communication**
+
 - Porkbun email
   - Forwarded domain's custom email to personal email by following a guide by Gourav Goyal
 
 **Hosting (Frontend + Backend) + SSL**
+
 - Railway
 
 **Client-Server Communication**
+
 - REST (for static and detailed information)
 - Server-Sent Events (for transmitting real-time data)
 
 **Code Quality**
+
 - ESLint
 - Prettier
 
 **CI/CD**
+
 - GitHub Actions (Super Linter, Setup Node)
 - Railway auto-deploy
 
@@ -247,6 +262,7 @@ The viewport boundary itself carries some padding, so markers near the edge of t
 Instead of deleting and recreating every marker whenever new data arrives, markers are stored and matched using their unique IDs.
 
 During updates:
+
 - Existing markers are updated with new information.
 - New data creates new markers.
 - Removed data removes outdated markers.
@@ -270,12 +286,14 @@ Separately, a review of the rendering logic found that existing markers were hav
 A challenge was determining how to deliver live updates without constantly polling the backend. Regular REST polling would require clients to repeatedly request data even when nothing changed. The application uses Server-Sent Events (SSE) for continuously changing information.
 
 SSE was chosen over WebSockets because the application mainly requires one-way communication:
+
 - The server pushes updates to connected clients.
 - Clients only request data when necessary.
 
 WebSockets would introduce unnecessary complexity because the client does not need to constantly send real-time information back.
 
 REST endpoints are still used for information that are updated less frequently and requires user interaction (popups), such as:
+
 - TTC stop arrival times.
 - TTC stop alerts.
 - Bike Station details.
@@ -292,6 +310,7 @@ Leaflet maintains its own map state, which does not directly fit into React's re
 The Leaflet map instance is stored using `useRef` because the map object itself does not need to trigger React renders.
 
 Using `useRef` allows the application to:
+
 - Modify the map without unnecessary rerenders.
 - Maintain persistent references to layers.
 - Update markers efficiently.
@@ -307,6 +326,7 @@ The application uses Leaflet `divIcon` instead of traditional image-based icons.
 Since this application does not currently require large-scale horizontal scaling, processed datasets are stored in server memory.
 
 This provides:
+
 - Fast access.
 - Simple architecture.
 - Lower complexity.
@@ -322,6 +342,7 @@ However, one tradeoff for this data storage strategy is that everything will be 
 Since the application contains many different map layers, a challenge was deciding how users should control what information is displayed. A common approach would be to load all available data and let users enable or disable layers entirely on the client side. However, this created unnecessary work because users may only be interested in a subset of information.
 
 To solve this, the application uses URL parameters to represent the current map configuration. The selected layers are encoded in the URL, allowing users to:
+
 - Open the application with a specific set of enabled layers.
 - Bookmark a preferred map configuration.
 - Share a link that preserves the current map state.
@@ -333,6 +354,7 @@ This also reduces the amount of unnecessary processing during the initial page l
 A challenge with real-time vehicle tracking was smoothly moving markers when their positions changed. The initial approach was to rely on CSS transitions. However, Leaflet MarkerCluster manages marker DOM elements internally. When markers move between clusters, the DOM elements are frequently removed and recreated.
 
 Because the browser sees recreated elements are new elements, existing CSS transitions are interrupted and cannot smoothly interpolate between the previous and new positions. To solve this, marker movement animation was implemented manually using JavaScript. The animation system uses:
+
 - Starting coordinates.
 - Destination coordinates.
 - Animation start time.
@@ -360,6 +382,7 @@ Interactive maps are inherently difficult to make accessible because most inform
 ### Keyboard Navigation
 
 Leaflet's default controls are not always optimized for keyboard-only navigation. A custom layer control component was created instead of relying entirely on Leaflet's default layer toggle UI. This allows users to:
+
 - Navigate controls using the keyboard.
 - Toggle layers without using a mouse.
 
@@ -372,6 +395,7 @@ Leaflet internally appends its control container (which contains elements such a
 For a mouse user, this ordering is not noticeable. However, for a keyboard or screen-reader user, this creates a navigation problem.
 
 Because the map may contain hundreds or thousands of interactive markers, users who only want to reach interface elements such as:
+
 - Data source attribution.
 - Contact information.
 - Other page controls.
@@ -389,6 +413,7 @@ When activated, the button programmatically moves focus to the Leaflet controls,
 ### Screen Reader Support
 
 Markers include ARIA attributes so they are not presented as unlabeled interactive elements. Descriptions provide information such as:
+
 - What type of marker it is.
 - Whether it contains additional information.
 - What action is available.
@@ -412,6 +437,7 @@ Icons do not rely only on color or shadows to communicate information. Borders a
 Because the application displays public datasets from multiple sources, proper attribution is required. A dedicated data source attribution section was implemented using the native HTML `dialog` element.
 
 The native dialog element was chosen because it provides:
+
 - Built-in focus management.
 - Keyboard support.
 - Escape-to-close behavior.
@@ -432,6 +458,7 @@ Instead of storing the email as plain text, the application constructs the email
 Although the application is primarily an interactive single-page application, SEO improvements were implemented to improve discoverability.
 
 The project includes:
+
 - Descriptive page metadata.
 - Keyword metadata.
 - Open Graph metadata for link previews.
@@ -446,16 +473,16 @@ These allow search engines to better understand the application and determine wh
 
 During deployment testing, backend memory usage became an important consideration. The largest memory usage came from processing TTC GTFS data. The original implementation loaded text files by storing it into an array, where each element of the array corresponds to each row of the file. For a large text file that contains over 4 million rows, this implementation creates an array with millions of elements and stores it in memory.
 
-If the number of rows in a file is `n` and the number of columns is `m`, the naive implementation has a worst-case space complexity of `O(mn)`. If we count the array created to access column data for each row, then the worst-case space complexity is actually `O(mn + m)`.
-
 The solution was to process the files using generators. Instead of loading the entire dataset:
+
 - The backend processes one row at a time.
 - Only required fields are extracted.
 - Temporary objects can be garbage collected immediately.
 
-This reduces the worst-case space complexity from `O(mn + m)` to simply `O(m)`. Since most columns are not used, the average-case space complexity is actually `O(1)`.
+This reduces the memory usage by around 33%.
 
 There are also additional improvements which included:
+
 - Removing duplicate parsing passes.
 - Avoiding storing unnecessary raw data.
 - Reducing simultaneous large objects in memory.
@@ -466,7 +493,7 @@ Starts at 94 MB. Downloads the zip and RSS jumps to 343 MB, almost entirely in e
 
 ### Optimized Implementation Memory Snapshot
 
-Starts at 98 MB. Downloads the zip and RSS jumps to 341 MB, same as naive. Then, critically, there's no "decompress all files to strings" step as it goes straight to parsing. It decompresses and parses one file at a time. After stops, rss actually drops to 268 MB because the buffer was freed. After trips, it climbs to 333 MB. Then parseStopRoutes (the 4-million row stop_times file) causes the biggest spike: 1301 MB, which is actually higher than the naive version's peak of 1262 MB. After GC, it settles at 541 MB. Delta from baseline: +443 MB.
+Starts at 98 MB. Downloads the zip and RSS jumps to 341 MB, same as naive. Then, critically, there's no "decompress all files to strings" step as it goes straight to parsing. It decompresses and parses one file at a time. After parsing stops, RSS actually drops to 268 MB because the buffer was freed. After parsing trips, it climbs to 333 MB. Then parseStopRoutes (the 4-million row stop_times file) causes the biggest spike: 1301 MB, which is actually higher than the naive version's peak of 1262 MB. After GC, it settles at 541 MB. Delta from baseline: +443 MB.
 
 ### A Few Smaller Cleanups
 
@@ -477,6 +504,7 @@ A later pass over the backend turned up a couple of smaller things worth fixing 
 ### Traffic Information
 
 A future addition would be integrating traffic flow data. This could provide:
+
 - Traffic congestion visualization.
 - Average speed information.
 - Traffic heatmaps.
@@ -490,6 +518,7 @@ The application could include public events happening throughout Toronto. This w
 Toronto Live City Map demonstrates how fragmented public datasets can be combined into a single real-time geospatial application.
 
 The project involved challenges across:
+
 - Full-stack architecture.
 - Real-time communication.
 - External API integration.
